@@ -1,4 +1,4 @@
-"""Run a Sigma rule over log events in SQLite"""
+"""Run a Sigma rule over log events in SQLite."""
 
 import sqlite3
 from pathlib import Path

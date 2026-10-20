@@ -1,17 +1,30 @@
 # detection-as-code
 
-Detections written as Sigma (and Splunk SPL where Sigma cannot express the logic), each tested
-against public attack datasets.
-
-Work in progress.
+Sigma rules, each tested against public attack logs: the rule has to fire
+on the attack and stay quiet on normal activity. Work in progress.
 
 ## Layout
 
-One folder per detection, grouped by platform:
+```
+detections/<platform>/<name>/
+  <rule>.yml   Sigma rule, file named as in SigmaHQ
+  tests.yml    test cases: log URL, sha256, what the rule should find
+```
 
-| Path | What |
-|---|---|
-| `detections/<platform>/<name>/sigma.yml` | Sigma rule (plain Sigma) |
-| `detections/<platform>/<name>/splunk.spl` | hand-written SPL counterpart (optional) |
-| `detections/<platform>/<name>/tests.yml` | test cases: attack logs the rule must fire on, normal logs it must stay silent on |
-| `detections/<platform>/<name>/README.md` | detection card: hypothesis, logic, noise measured in Splunk, triage, limitations |
+## Checks
+
+On every commit (pre-commit):
+
+- `sigma check`: rule syntax, ATT&CK tags, duplicate ids
+- `pytest`: folder layout and tests.yml format, then every rule is run
+  against the logs from its tests.yml (pySigma converts it to SQL, SQLite runs it)
+
+Logs are not stored in the repo. They are downloaded by URL and checked
+against the sha256 from tests.yml.
+
+## Running locally
+
+```
+uv sync
+uv run pytest
+```

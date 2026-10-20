@@ -2,10 +2,9 @@ title: Potential Credential Dumping Via LSASS Process Access
 id: bcc79b72-5fa7-4bce-98cd-f9156823c45e
 status: experimental
 description: |
-  Detects a process opening lsass.exe with access rights or through dump functions
-  that let it read LSASS memory, a step every LSASS credential dumper has to take.
-  Covers dumps made through dbghelp/dbgcore or comsvcs (ProcDump, rundll32 MiniDump,
-  Task Manager) and direct memory reads with the masks used by Mimikatz-style tools.
+  Detects a process opening lsass.exe to read its memory, either through minidump functions
+  in dbghelp, dbgcore or comsvcs (ProcDump, rundll32 MiniDump, Task Manager) or with
+  full-access and Mimikatz access masks.
   0x1410 is left out on purpose: .NET and Task Manager request it all the time.
   Handle duplication, kernel drivers and code running inside wininit or csrss are not covered.
 references:
@@ -56,6 +55,6 @@ fields:
   - GrantedAccess
   - CallTrace
 falsepositives:
-  - Security software (antivirus, EDR) and backup agents that open lsass with full access. Exclude them by full path.
+  - Antivirus, EDR and backup agents opening lsass with full access (exclude by full path)
   - Administrators creating an lsass dump with Task Manager or ProcDump for troubleshooting.
 level: high

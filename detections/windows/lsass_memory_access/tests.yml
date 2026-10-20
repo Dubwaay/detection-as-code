@@ -24,7 +24,7 @@ cases:
       min_results: 1
       match: {SourceImage: '*\mimikatz.exe'}
   - name: fp_atomic_normal_activity
-    description: Atomic Red Team T1547.001 hosts without credential dumping; system processes still open lsass.
+    description: Atomic Red Team T1547.001 run, no credential dumping. System processes still open lsass.
     datasets:
       - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1547.001/atomic_red_team/windows-sysmon.log
         sha256: 11d8c6f7ca60994936ae9332ea67e5c220027ae1addad48203df6bdde9d46f5d

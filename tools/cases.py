@@ -9,7 +9,7 @@ Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 
 
 class Strict(BaseModel):
-    # A typo in a key is an error, not a setting that is silently ignored.
+    # unknown keys are errors, so a typo fails the test
     model_config = ConfigDict(extra="forbid")
 
 

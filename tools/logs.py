@@ -1,4 +1,4 @@
-"""Public log datasets: download once, verify the hash, read events as flat dicts."""
+"""Download test datasets and parse them into events."""
 
 import hashlib
 import re

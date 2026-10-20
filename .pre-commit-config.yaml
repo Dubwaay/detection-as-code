@@ -1,4 +1,4 @@
-# Versions are pinned; bump deliberately with `pre-commit autoupdate`.
+# update versions: pre-commit autoupdate
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

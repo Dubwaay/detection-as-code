@@ -1,4 +1,4 @@
-"""Each rule against the logs in its tests.yml, run in SQLite"""
+"""Each rule against the logs in its tests.yml, run in SQLite."""
 
 import re
 from pathlib import Path
