@@ -6,7 +6,8 @@ description: |
   in dbghelp, dbgcore or comsvcs (ProcDump, rundll32 MiniDump, Task Manager) or with
   full-access and Mimikatz access masks.
   0x1410 is left out on purpose: .NET and Task Manager request it all the time.
-  msiexec reading performance counters and the Zoom installer custom action are excluded.
+  Excluded: msiexec reading performance counters, Sysmon's own process access and the Zoom
+  installer custom action.
   Not covered: handle duplication, kernel drivers, code inside wininit or csrss, and a spoofed
   call stack that looks like one of the excluded callers.
 references:
@@ -47,15 +48,14 @@ detection:
       - 'C:\Windows\System32\wininit.exe'
       - 'C:\Windows\System32\csrss.exe'
   filter_main_msiexec:
-    SourceImage:
-      - 'C:\Windows\System32\msiexec.exe'
-    CallTrace|contains:
-      - '\perfproc.dll'
+    SourceImage: 'C:\Windows\System32\msiexec.exe'
+    CallTrace|contains: '\perfproc.dll'
+  filter_main_sysmon:
+    SourceImage: 'C:\Windows\Sysmon64.exe'
+    CallTrace|contains: '\Sysmon64.exe'
   filter_optional_zoom:
-    SourceImage:
-      - 'C:\Windows\System32\msiexec.exe'
-    CallTrace|contains:
-      - '\Program Files\Zoom\Zoom\CustomAction.dll'
+    SourceImage: 'C:\Windows\System32\msiexec.exe'
+    CallTrace|contains: '\Program Files\Zoom\Zoom\CustomAction.dll'
   condition: selection_target and 1 of selection_method_* and not 1 of filter_main_* and not 1 of filter_optional_*
 fields:
   - UtcTime
@@ -68,5 +68,6 @@ fields:
   - CallTrace
 falsepositives:
   - Antivirus, EDR and backup agents opening lsass with full access (exclude by full path)
-  - Administrators creating an lsass dump with Task Manager or ProcDump for troubleshooting.
+  - Administrators creating an lsass dump with Task Manager or ProcDump for troubleshooting
+  - Installers whose custom actions open every running process with full access, like the excluded Zoom installer
 level: high
