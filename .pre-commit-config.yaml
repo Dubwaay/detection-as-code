@@ -24,3 +24,19 @@ repos:
     hooks:
       - id: ruff-check
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: sigma-check
+        name: sigma check
+        # every rule file; tests.yml holds test cases, not a rule
+        entry: bash -c 'uv run --locked sigma check -i $(find detections -name "*.yml" ! -name tests.yml)'
+        language: system
+        pass_filenames: false
+        files: ^detections/
+      - id: pytest
+        name: pytest
+        entry: uv run --locked pytest -q
+        language: system
+        pass_filenames: false
+        files: ^(detections/|tools/|tests/|pyproject\.toml$|uv\.lock$)

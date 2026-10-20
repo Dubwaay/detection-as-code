@@ -1,0 +1,61 @@
+title: Potential Credential Dumping Via LSASS Process Access
+id: bcc79b72-5fa7-4bce-98cd-f9156823c45e
+status: experimental
+description: |
+  Detects a process opening lsass.exe with access rights or through dump functions
+  that let it read LSASS memory, a step every LSASS credential dumper has to take.
+  Covers dumps made through dbghelp/dbgcore or comsvcs (ProcDump, rundll32 MiniDump,
+  Task Manager) and direct memory reads with the masks used by Mimikatz-style tools.
+  0x1410 is left out on purpose: .NET and Task Manager request it all the time.
+  Handle duplication, kernel drivers and code running inside wininit or csrss are not covered.
+references:
+  - https://attack.mitre.org/techniques/T1003/001/
+  - https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
+  - https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1003.001/T1003.001.md
+author: Dubwaay
+date: 2026-10-19
+tags:
+  - attack.credential-access
+  - attack.t1003.001
+logsource:
+  category: process_access
+  product: windows
+detection:
+  selection_target:
+    TargetImage|endswith: '\lsass.exe'
+  selection_method_dll:
+    CallTrace|contains:
+      # minidump functions: MiniDumpWriteDump in dbgcore/dbghelp, MiniDump export in comsvcs
+      - '\dbgcore.dll'
+      - '\dbghelp.dll'
+      - '\comsvcs.dll'
+  selection_method_access:
+    GrantedAccess:
+      # full access, current and older definitions of PROCESS_ALL_ACCESS
+      - '0x1fffff'
+      - '0x1f3fff'
+      - '0x1f0fff'
+      - '0x1f1fff'
+      - '0x1f2fff'
+      # masks used by Mimikatz to read LSASS memory
+      - '0x1010'
+      - '0x1438'
+      - '0x143a'
+  filter_main_system:
+    SourceImage:
+      - 'C:\Windows\System32\wininit.exe'
+      - 'C:\Windows\System32\csrss.exe'
+  condition: selection_target and 1 of selection_method_* and not 1 of filter_main_*
+fields:
+  - UtcTime
+  - Computer
+  - SourceImage
+  - SourceProcessId
+  - SourceProcessGUID
+  - TargetImage
+  - GrantedAccess
+  - CallTrace
+falsepositives:
+  - Security software (antivirus, EDR) and backup agents that open lsass with full access. Exclude them by full path.
+  - Administrators creating an lsass dump with Task Manager or ProcDump for troubleshooting.
+level: high

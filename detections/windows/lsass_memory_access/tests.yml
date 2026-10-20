@@ -1,0 +1,35 @@
+rule_id: bcc79b72-5fa7-4bce-98cd-f9156823c45e
+cases:
+  - name: tp_atomic_lsass_dump_tools
+    description: Atomic Red Team T1003.001 run with ProcDump, comsvcs MiniDump, Dumpert, WCE and Task Manager dumps.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1003.001/atomic_red_team/windows-sysmon.log
+        sha256: a1905850598f1e943708c3329190e29c6cb046389c1575cb2afd6369b5f269f1
+        size: 14235927
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      fields_present: [Computer, SourceImage, GrantedAccess]
+      match: {SourceImage: '*\procdump64.exe'}
+  - name: tp_creddump_mimikatz
+    description: Atomic Red Team T1003.001 run with Mimikatz and xordump reading LSASS memory.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1003.001/atomic_red_team/windows-sysmon_creddump.log
+        sha256: a37b69dce32eaff6b5c1fdb4bb9cbea6dec78a4fbd22cd41362ab0e377f075ef
+        size: 65428
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      match: {SourceImage: '*\mimikatz.exe'}
+  - name: fp_atomic_normal_activity
+    description: Atomic Red Team T1547.001 hosts without credential dumping; system processes still open lsass.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1547.001/atomic_red_team/windows-sysmon.log
+        sha256: 11d8c6f7ca60994936ae9332ea67e5c220027ae1addad48203df6bdde9d46f5d
+        size: 11357100
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      max_results: 0
