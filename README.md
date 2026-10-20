@@ -28,3 +28,10 @@ against the sha256 from tests.yml.
 uv sync
 uv run pytest
 ```
+
+To run the same checks on every commit:
+
+```
+uv tool install pre-commit
+pre-commit install
+```
