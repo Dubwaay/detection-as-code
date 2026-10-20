@@ -176,6 +176,8 @@ source = { virtual = "." }
 dependencies = [
     { name = "pydantic" },
     { name = "pysigma" },
+    { name = "pysigma-backend-sqlite" },
+    { name = "pysigma-pipeline-sysmon" },
     { name = "pyyaml" },
     { name = "sigma-cli" },
 ]
@@ -189,6 +191,8 @@ dev = [
 requires-dist = [
     { name = "pydantic", specifier = "==2.13.5" },
     { name = "pysigma", specifier = "==1.5.1" },
+    { name = "pysigma-backend-sqlite", specifier = "==2.0.0" },
+    { name = "pysigma-pipeline-sysmon", specifier = "==2.0.0" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "sigma-cli", specifier = "==3.1.0" },
 ]
@@ -576,6 +580,30 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8c/ca/ed5d1e86bb08501a0b664500224d5e58d6801a63713ad8f05857b9cf3c1f/pysigma-1.5.1.tar.gz", hash = "sha256:5f27ea435bc53480b43f9e385104c6df3d473715321d662a52a1fc283ab0b8db", size = 142073, upload-time = "2026-09-21T16:18:30.855Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b9/65/23d04dccc3a2d7db302eb751400a6d2ae328f849598871b8270f0ea60cc9/pysigma-1.5.1-py3-none-any.whl", hash = "sha256:1e6e080bde31db6039eb5d87d43322bf416534f30048091c65038e88225b8200", size = 171485, upload-time = "2026-09-21T16:18:29.147Z" },
+]
+
+[[package]]
+name = "pysigma-backend-sqlite"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pysigma" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4f/39/a782807e8a59388ba1ac2280d9a95edd0ef2aca5bf19c0083af857619d44/pysigma_backend_sqlite-2.0.0.tar.gz", hash = "sha256:fbbdd8853e3ddd256016d7bd968c0e53f7cb83cab2a9d837beb8b87bec45f8fe", size = 35197, upload-time = "2026-09-26T13:58:42.075Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/20/51f78076640b86ceec13ef943cc3d988c5e5718ec97703c599de6f5c6d92/pysigma_backend_sqlite-2.0.0-py3-none-any.whl", hash = "sha256:08b94d016912c3d14f80197d39c5e0b87a6f51c159f9aca3e06a377e753da67c", size = 32279, upload-time = "2026-09-26T13:58:40.734Z" },
+]
+
+[[package]]
+name = "pysigma-pipeline-sysmon"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pysigma" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/63/6df00f93d61ba5585f80114f4def88e6a9984be91d2b2d80fed5dbc786eb/pysigma_pipeline_sysmon-2.0.0.tar.gz", hash = "sha256:a05c4f0d59602c4002bc0a1b9189508454f85ec397f5fd20294d3b56006bee54", size = 11503, upload-time = "2025-11-30T01:46:39.282Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/02/8a/f8d099ce50e0639bd5da7566834e14cd96a50e6d56b1f3143f93113d1f97/pysigma_pipeline_sysmon-2.0.0-py3-none-any.whl", hash = "sha256:84575bbde5dd891882306ca1f6ce16bdc592da2e511ac8960012af2efb9d120b", size = 12586, upload-time = "2025-11-30T01:46:38.052Z" },
 ]
 
 [[package]]

@@ -5,6 +5,8 @@ requires-python = ">=3.12"
 dependencies = [
     "pydantic==2.13.5",
     "pysigma==1.5.1",
+    "pysigma-backend-sqlite==2.0.0",
+    "pysigma-pipeline-sysmon==2.0.0",
     "pyyaml==6.0.3",
     "sigma-cli==3.1.0",
 ]
