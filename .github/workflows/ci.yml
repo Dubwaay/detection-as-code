@@ -39,3 +39,17 @@ jobs:
 
       - name: detection tests
         run: uv run pytest -v
+
+  goodlog:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        baseline: [win10-client]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: goodlog ${{ matrix.baseline }}
+        run: tools/goodlog.sh ${{ matrix.baseline }}
