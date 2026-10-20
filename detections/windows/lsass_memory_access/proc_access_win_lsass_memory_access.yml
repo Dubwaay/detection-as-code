@@ -6,7 +6,9 @@ description: |
   in dbghelp, dbgcore or comsvcs (ProcDump, rundll32 MiniDump, Task Manager) or with
   full-access and Mimikatz access masks.
   0x1410 is left out on purpose: .NET and Task Manager request it all the time.
-  Handle duplication, kernel drivers and code running inside wininit or csrss are not covered.
+  msiexec reading performance counters and the Zoom installer custom action are excluded.
+  Not covered: handle duplication, kernel drivers, code inside wininit or csrss, and a spoofed
+  call stack that looks like one of the excluded callers.
 references:
   - https://attack.mitre.org/techniques/T1003/001/
   - https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
