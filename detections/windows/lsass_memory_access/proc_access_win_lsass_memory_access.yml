@@ -44,7 +44,17 @@ detection:
     SourceImage:
       - 'C:\Windows\System32\wininit.exe'
       - 'C:\Windows\System32\csrss.exe'
-  condition: selection_target and 1 of selection_method_* and not 1 of filter_main_*
+  filter_main_msiexec:
+    SourceImage:
+      - 'C:\Windows\System32\msiexec.exe'
+    CallTrace|contains:
+      - '\perfproc.dll'
+  filter_optional_zoom:
+    SourceImage:
+      - 'C:\Windows\System32\msiexec.exe'
+    CallTrace|contains:
+      - '\Program Files\Zoom\Zoom\CustomAction.dll'
+  condition: selection_target and 1 of selection_method_* and not 1 of filter_main_* and not 1 of filter_optional_*
 fields:
   - UtcTime
   - Computer
