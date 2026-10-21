@@ -1,0 +1,24 @@
+rule_id: e6adcc10-6ff1-4cc5-8d92-e0c72f1be96f
+cases:
+  - name: tp_schtasks_public_folder_payloads
+    description: Two tasks created with schtasks on a domain controller. They run wmic with a payload in an NTFS stream and explorer with a .js in C:\Users\Public.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1053.005/schtasks/windows-sysmon.log
+        sha256: 2af70b9815a95c0be345a10e7c833cbcd5c4dd6919040d7652396b008475acba
+        size: 626881
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 2
+      fields_present: [Computer, User, ParentImage, CommandLine]
+      match: {CommandLine: '*wmic process call create*:59e9c935*'}
+  - name: fp_atomic_normal_activity
+    description: Atomic Red Team T1547.001 run, 342 process starts and no scheduled tasks.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1547.001/atomic_red_team/windows-sysmon.log
+        sha256: 11d8c6f7ca60994936ae9332ea67e5c220027ae1addad48203df6bdde9d46f5d
+        size: 11357100
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      max_results: 0
