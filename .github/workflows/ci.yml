@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        baseline: [win10-client, win2022-ad]
+        baseline: [win10-client, win2022-ad, win11-client, win2022-0-20348-azure, win2022-evtx]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

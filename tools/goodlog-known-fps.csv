@@ -1,0 +1,2 @@
+RuleId;RuleName;MatchString
+bcc79b72-5fa7-4bce-98cd-f9156823c45e;Potential Credential Dumping Via LSASS Process Access;\\procexp64\.exe
