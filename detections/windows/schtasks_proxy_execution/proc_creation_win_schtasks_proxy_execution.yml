@@ -1,0 +1,88 @@
+title: Scheduled Task Created With Interpreter Or Proxy Binary Via Schtasks.EXE
+id: e6adcc10-6ff1-4cc5-8d92-e0c72f1be96f
+status: experimental
+description: |
+  Detects schtasks.exe creating or changing a task (/Create, /Change) that starts a script
+  interpreter or a system binary used as a proxy: wmic, mshta, rundll32, PowerShell etc.
+  Not covered: tasks defined with /XML, tasks registered without schtasks.exe,
+  interpreters and proxies missing from the list, and a task that starts an executable
+  from a user-writable folder directly.
+references:
+  - https://attack.mitre.org/techniques/T1053/005/
+  - https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks-create
+  - https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks-change
+  - https://lolbas-project.github.io/
+  - https://lolbas-project.github.io/lolbas/Binaries/Wmic/
+  - https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1053.005/T1053.005.md
+author: Dubwaay
+date: 2026-10-21
+tags:
+  - attack.execution
+  - attack.persistence
+  - attack.privilege-escalation
+  - attack.t1053.005
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    - Image|endswith: '\schtasks.exe'
+    - OriginalFileName:
+        - 'schtasks.exe'
+        - 'sctasks.exe'  # Windows Server 2016
+  selection_cli_action:
+    CommandLine|windash|contains:
+      - ' -create '
+      - ' -change '
+  selection_cli_proxy:
+    CommandLine|contains:
+      # script and command interpreters
+      - 'powershell'
+      - 'pwsh'
+      - 'wscript'
+      - 'cscript'
+      - 'cmd /c '
+      - 'cmd /k '
+      - 'cmd /r '
+      - 'cmd /q '
+      - 'cmd /v'
+      - 'cmd.exe /c '
+      - 'cmd.exe /k '
+      - 'cmd.exe /r '
+      - 'cmd.exe /q '
+      - 'cmd.exe /v'
+      - '%comspec%'
+      - 'bash.exe'
+      - ' bash '
+      # proxy binaries
+      - 'mshta'
+      - 'rundll32'
+      - 'regsvr32'
+      - 'wmic '
+      - 'wmic.exe'
+      - 'forfiles'
+      - 'scriptrunner'
+      - 'scrcons'
+      - 'hh.exe'
+      - ' hh '
+      - 'explorer.exe'
+      - ' explorer '
+      # downloaders
+      - 'certutil'
+      - 'bitsadmin'
+      - 'curl '
+      - 'curl.exe'
+  condition: all of selection_*
+fields:
+  - UtcTime
+  - Computer
+  - User
+  - ParentImage
+  - ParentCommandLine
+  - Image
+  - OriginalFileName
+  - CommandLine
+falsepositives:
+  - Admin scripts that a scheduled task runs through PowerShell or cmd
+  - Installers and updaters that create a task running a script or rundll32
+level: medium
