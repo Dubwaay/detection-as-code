@@ -55,7 +55,9 @@ detection:
     CallTrace|contains: '\Sysmon64.exe'
   filter_optional_zoom:
     SourceImage: 'C:\Windows\System32\msiexec.exe'
-    CallTrace|contains: '\Program Files\Zoom\Zoom\CustomAction.dll'
+    CallTrace|contains:
+      - '\Program Files\Zoom\Zoom\CustomAction.dll'
+      - '\Program Files\Zoom\Zoom(64bit)\CustomAction.dll'
   condition: selection_target and 1 of selection_method_* and not 1 of filter_main_* and not 1 of filter_optional_*
 fields:
   - UtcTime
@@ -69,5 +71,6 @@ fields:
 falsepositives:
   - Antivirus, EDR and backup agents opening lsass with full access (exclude by full path)
   - Administrators creating an lsass dump with Task Manager or ProcDump for troubleshooting
+  - Process Explorer run as administrator opening lsass with full access about once a second
   - Installers whose custom actions open every running process with full access, like the excluded Zoom installer
 level: high
