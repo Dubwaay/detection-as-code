@@ -1,0 +1,47 @@
+rule_id: 7ea71b39-c4d2-44e6-bea9-54563c7f8d8c
+cases:
+  - name: tp_wmiexec
+    description: Impacket wmiexec, dcomexec and smbexec against one host. This case checks the wmiexec runs, cmd.exe under WmiPrvSE.exe.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1021.002/atomic_red_team/wmiexec_windows-sysmon.log
+        sha256: 09584b182588aaba8b5cabe6330d71decf7d0f6b3c8e541e9f606616d1d90817
+        size: 19764
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 7
+      fields_present: [Computer, User, ParentImage, CommandLine]
+      match: {ParentImage: '*\WmiPrvSE.exe'}
+  - name: tp_dcomexec
+    description: Same log. The dcomexec run starts cmd.exe under explorer.exe of the logged-on user.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1021.002/atomic_red_team/wmiexec_windows-sysmon.log
+        sha256: 09584b182588aaba8b5cabe6330d71decf7d0f6b3c8e541e9f606616d1d90817
+        size: 19764
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      match: {ParentImage: '*\explorer.exe'}
+  - name: tp_smbexec
+    description: Impacket smbexec. A service starts cmd.exe, which writes the command and its redirect to C$ into a .bat file.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1021.002/atomic_red_team/smbexec_windows-sysmon.log
+        sha256: 2d29d8d01bb1d328a65e39963bd8c1945be271d40d9a2ca0507b8fc20bfd98cd
+        size: 5577
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      max_results: 1
+      match: {ParentImage: '*\services.exe'}
+  - name: fp_atomic_normal_activity
+    description: Atomic Red Team T1547.001 run, 342 process starts and no output written to admin shares.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1547.001/atomic_red_team/windows-sysmon.log
+        sha256: 11d8c6f7ca60994936ae9332ea67e5c220027ae1addad48203df6bdde9d46f5d
+        size: 11357100
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      max_results: 0

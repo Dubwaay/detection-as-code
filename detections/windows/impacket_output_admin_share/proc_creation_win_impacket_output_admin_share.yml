@@ -1,0 +1,49 @@
+title: Command Output Redirected To Hidden Admin Share Via cmd.exe
+id: 7ea71b39-c4d2-44e6-bea9-54563c7f8d8c
+status: experimental
+description: |
+  description: |
+  Detects cmd.exe /Q writing command output to a hidden admin share, as Impacket wmiexec,
+  dcomexec and smbexec do:
+  cmd.exe /Q /c cd 1> \\127.0.0.1\ADMIN$\__1682094037.0726507 2>&1
+  Not covered: -nooutput, -silentcommand, a share without $ in its name, a renamed cmd.exe.
+references:
+  - https://attack.mitre.org/techniques/T1021/002/
+  - https://github.com/fortra/impacket/blob/master/examples/wmiexec.py
+  - https://github.com/fortra/impacket/blob/master/examples/dcomexec.py
+  - https://github.com/fortra/impacket/blob/master/examples/smbexec.py
+  - https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/cmd
+author: Dubwaay
+date: 2026-10-22
+tags:
+  - attack.lateral-movement
+  - attack.t1021.002
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    - Image|endswith: '\cmd.exe'
+  selection_cli_quiet:
+    CommandLine|contains: ' /q '
+  selection_cli_redirect:
+    CommandLine|contains:
+      - '> \\\\'
+      - '>\\\\'
+      - '> "\\\\'
+      - '>"\\\\'
+  selection_cli_share:
+    CommandLine|contains: '$\'
+  condition: all of selection_*
+fields:
+  - UtcTime
+  - Computer
+  - User
+  - IntegrityLevel
+  - ParentImage
+  - ParentCommandLine
+  - Image
+  - CommandLine
+falsepositives:
+  - Admin or inventory scripts that run cmd.exe /Q and save their output to an admin share
+level: high
