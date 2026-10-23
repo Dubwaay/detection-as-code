@@ -1,0 +1,47 @@
+rule_id: a9e78228-8f47-4a08-8b1d-a153492eb494
+cases:
+  - name: tp_wmiexec
+    description: Impacket wmiexec, dcomexec and smbexec against one host. cmd.exe under WmiPrvSE.exe (5) and services.exe (1).
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1021.002/atomic_red_team/wmiexec_windows-sysmon.log
+        sha256: 09584b182588aaba8b5cabe6330d71decf7d0f6b3c8e541e9f606616d1d90817
+        size: 19764
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 6
+      fields_present: [Computer, User, ParentImage, CommandLine]
+      match: {ParentImage: '*\WmiPrvSE.exe'}
+  - name: tp_smbexec
+    description: Impacket smbexec. services.exe starts cmd.exe from the service binary path.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1021.002/atomic_red_team/smbexec_windows-sysmon.log
+        sha256: 2d29d8d01bb1d328a65e39963bd8c1945be271d40d9a2ca0507b8fc20bfd98cd
+        size: 5577
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      max_results: 1
+      match: {ParentImage: '*\services.exe'}
+  - name: tp_service_powershell
+    description: A service created from another host runs cmd.exe /b /c start /b /min powershell.exe -nop -w hidden.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1543.003/lateral_movement_powershell/windows-sysmon.log
+        sha256: e500ce256523846fbe81bbc74e43214c14acdccbc51f89c162362aedf3b0a27f
+        size: 5304151
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      match: {CommandLine: '*start /b /min powershell*'}
+  - name: fp_atomic_normal_activity
+    description: Atomic Red Team T1547.001 run, 342 process starts and no shell started by WMI or a service.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1547.001/atomic_red_team/windows-sysmon.log
+        sha256: 11d8c6f7ca60994936ae9332ea67e5c220027ae1addad48203df6bdde9d46f5d
+        size: 11357100
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      max_results: 0

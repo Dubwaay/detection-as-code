@@ -1,0 +1,55 @@
+title: Cmd Or PowerShell Started By WmiPrvSE.exe Or services.exe
+id: a9e78228-8f47-4a08-8b1d-a153492eb494
+status: experimental
+description: |
+  Detects cmd.exe or PowerShell started by WmiPrvSE.exe or services.exe, for example:
+    C:\Windows\system32\cmd.exe /b /c start /b /min powershell.exe -nop -w hidden -noni -c "..."
+  Excluded: Nessus credentialed scans, which start cmd.exe from WmiPrvSE.exe and write to \TEMP\nessus_*.
+  Not covered: dcomexec (parent explorer.exe), wmiexec -silentcommand, wscript, cscript and mshta,
+  WinRM and scheduled tasks.
+references:
+  - https://attack.mitre.org/techniques/T1047/
+  - https://attack.mitre.org/techniques/T1569/002/
+  - https://github.com/fortra/impacket/blob/master/examples/wmiexec.py
+  - https://github.com/fortra/impacket/blob/master/examples/smbexec.py
+author: Dubwaay
+date: 2026-10-23
+tags:
+  - attack.execution
+  - attack.t1047
+  - attack.t1569.002
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_parent:
+    ParentImage|endswith:
+      - '\WmiPrvSE.exe'
+      - '\services.exe'
+  selection_img:
+    - Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    - OriginalFileName:
+      - 'Cmd.Exe'
+      - 'PowerShell.EXE'
+      - 'pwsh.dll'
+  filter_optional_nessus:
+    ParentImage|endswith: '\WmiPrvSE.exe'
+    CommandLine|contains: '\TEMP\nessus_'
+  condition: all of selection_* and not 1 of filter_optional_*
+fields:
+  - UtcTime
+  - Computer
+  - User
+  - IntegrityLevel
+  - ParentImage
+  - ParentCommandLine
+  - Image
+  - CommandLine
+falsepositives:
+  - Management and monitoring agents that run cmd.exe or PowerShell through WMI
+  - Vulnerability scanners in credentialed mode other than Nessus
+  - Services whose binary path is a cmd.exe or PowerShell command line
+level: medium
