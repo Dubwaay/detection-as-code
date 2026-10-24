@@ -1,0 +1,47 @@
+rule_id: c51e388f-6abf-4f1e-ab0b-c3dd6166b76c
+cases:
+  - name: tp_renamed_cmd
+    description: Atomic Red Team T1036.003 run with six interpreters under other names. cmd.exe as lsass.exe, lsm.exe and svchost.exe, PowerShell as taskhostw.exe, wscript.exe as svchost.exe, cscript.exe as notepad.exe.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1036.003/atomic_red_team/windows-sysmon.log
+        sha256: c9e2c2d4c29fa0e6054617b0743cb2574b28aa03a6560d80e4a66a4ee607aa75
+        size: 12615448
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 6
+      max_results: 6
+      fields_present: [Computer, User, ParentImage, Image, OriginalFileName, CommandLine]
+      match: {Image: '*\Windows\Temp\lsass.exe', OriginalFileName: 'Cmd.Exe'}
+  - name: tp_renamed_powershell
+    description: Same run. PowerShell copied to taskhostw.exe in AppData\Roaming.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1036.003/atomic_red_team/windows-sysmon.log
+        sha256: c9e2c2d4c29fa0e6054617b0743cb2574b28aa03a6560d80e4a66a4ee607aa75
+        size: 12615448
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      match: {Image: '*\taskhostw.exe', OriginalFileName: 'PowerShell.EXE'}
+  - name: tp_renamed_script_host
+    description: Same run. cscript.exe copied to notepad.exe in AppData\Roaming.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1036.003/atomic_red_team/windows-sysmon.log
+        sha256: c9e2c2d4c29fa0e6054617b0743cb2574b28aa03a6560d80e4a66a4ee607aa75
+        size: 12615448
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      min_results: 1
+      match: {Image: '*\notepad.exe', OriginalFileName: 'cscript.exe'}
+  - name: fp_atomic_normal_activity
+    description: Atomic Red Team T1547.001 run. File name and OriginalFileName differ for unsecapp.exe (unsecapp.dll) and dfsrs.exe (dfsr.exe), not an interpreter.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1547.001/atomic_red_team/windows-sysmon.log
+        sha256: 11d8c6f7ca60994936ae9332ea67e5c220027ae1addad48203df6bdde9d46f5d
+        size: 11357100
+        sourcetype: XmlWinEventLog
+        source: XmlWinEventLog:Microsoft-Windows-Sysmon/Operational
+    expect:
+      max_results: 0
