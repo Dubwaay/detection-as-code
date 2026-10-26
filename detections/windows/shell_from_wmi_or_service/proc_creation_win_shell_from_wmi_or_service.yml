@@ -2,11 +2,8 @@ title: Cmd Or PowerShell Started By WmiPrvSE.exe Or services.exe
 id: a9e78228-8f47-4a08-8b1d-a153492eb494
 status: experimental
 description: |
-  Detects cmd.exe or PowerShell started by WmiPrvSE.exe or services.exe, for example:
-    C:\Windows\system32\cmd.exe /b /c start /b /min powershell.exe -nop -w hidden -noni -c "..."
-  Excluded: Nessus credentialed scans, which start cmd.exe from WmiPrvSE.exe and write to \TEMP\nessus_*.
-  Not covered: dcomexec (parent explorer.exe), wmiexec -silentcommand, wscript, cscript and mshta,
-  WinRM and scheduled tasks.
+  Detects cmd.exe or PowerShell started by WmiPrvSE.exe or services.exe, as remote execution
+  through WMI or a service does.
 references:
   - https://attack.mitre.org/techniques/T1047/
   - https://attack.mitre.org/techniques/T1569/002/
@@ -31,7 +28,7 @@ detection:
       - '\cmd.exe'
       - '\powershell.exe'
       - '\pwsh.exe'
-    - OriginalFileName:
+    - OriginalFileName|startswith:
       - 'Cmd.Exe'
       - 'PowerShell.EXE'
       - 'pwsh.dll'

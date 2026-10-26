@@ -25,7 +25,7 @@ cases:
       max_results: 1
       match: {ParentImage: '*\services.exe'}
   - name: tp_service_powershell
-    description: A service created from another host runs cmd.exe /b /c start /b /min powershell.exe -nop -w hidden.
+    description: A service with a random 8-letter name runs cmd.exe /b /c start /b /min powershell.exe -nop -w hidden.
     datasets:
       - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1543.003/lateral_movement_powershell/windows-sysmon.log
         sha256: e500ce256523846fbe81bbc74e43214c14acdccbc51f89c162362aedf3b0a27f
