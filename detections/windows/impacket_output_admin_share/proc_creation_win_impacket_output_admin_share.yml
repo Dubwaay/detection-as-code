@@ -3,9 +3,7 @@ id: 7ea71b39-c4d2-44e6-bea9-54563c7f8d8c
 status: experimental
 description: |
   Detects cmd.exe /Q writing command output to a hidden admin share, as Impacket wmiexec,
-  dcomexec and smbexec do:
-  cmd.exe /Q /c cd 1> \\127.0.0.1\ADMIN$\__1682094037.0726507 2>&1
-  Not covered: -nooutput, -silentcommand, a share without $ in its name, a renamed cmd.exe.
+  dcomexec and smbexec do.
 references:
   - https://attack.mitre.org/techniques/T1021/002/
   - https://github.com/fortra/impacket/blob/master/examples/wmiexec.py
