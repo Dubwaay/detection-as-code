@@ -3,10 +3,7 @@ id: e6adcc10-6ff1-4cc5-8d92-e0c72f1be96f
 status: experimental
 description: |
   Detects schtasks.exe creating or changing a task (/Create, /Change) that starts a script
-  interpreter or a system binary used as a proxy: wmic, mshta, rundll32, PowerShell etc.
-  Not covered: tasks defined with /XML, tasks registered without schtasks.exe,
-  interpreters and proxies missing from the list, and a task that starts an executable
-  from a user-writable folder directly.
+  interpreter or a system binary used as a proxy, such as wmic, mshta, rundll32 or PowerShell.
 references:
   - https://attack.mitre.org/techniques/T1053/005/
   - https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks-create
@@ -27,9 +24,9 @@ logsource:
 detection:
   selection_img:
     - Image|endswith: '\schtasks.exe'
-    - OriginalFileName:
+    - OriginalFileName|startswith:
         - 'schtasks.exe'
-        - 'sctasks.exe'  # Windows Server 2016
+        - 'sctasks.exe'  # schtasks.exe 10.0.14393 (Server 2016) in the test data
   selection_cli_action:
     CommandLine|windash|contains:
       - ' -create '
