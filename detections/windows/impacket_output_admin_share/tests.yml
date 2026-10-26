@@ -1,7 +1,7 @@
 rule_id: 7ea71b39-c4d2-44e6-bea9-54563c7f8d8c
 cases:
   - name: tp_wmiexec
-    description: Impacket wmiexec, dcomexec and smbexec against one host. This case checks the wmiexec runs, cmd.exe under WmiPrvSE.exe.
+    description: Impacket wmiexec, dcomexec and smbexec against one host. All seven cmd.exe with the redirect must match, and at least one of them has WmiPrvSE.exe as parent.
     datasets:
       - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1021.002/atomic_red_team/wmiexec_windows-sysmon.log
         sha256: 09584b182588aaba8b5cabe6330d71decf7d0f6b3c8e541e9f606616d1d90817
