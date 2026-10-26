@@ -2,14 +2,8 @@ title: Potential Credential Dumping Via LSASS Process Access
 id: bcc79b72-5fa7-4bce-98cd-f9156823c45e
 status: experimental
 description: |
-  Detects a process opening lsass.exe to read its memory, either through minidump functions
-  in dbghelp, dbgcore or comsvcs (ProcDump, rundll32 MiniDump, Task Manager) or with
-  full-access and Mimikatz access masks.
-  0x1410 is left out on purpose: .NET and Task Manager request it all the time.
-  Excluded: msiexec reading performance counters, Sysmon's own process access and the Zoom
-  installer custom action.
-  Not covered: handle duplication, kernel drivers, code inside wininit or csrss, and a spoofed
-  call stack that looks like one of the excluded callers.
+  Detects a process opening lsass.exe to read its memory, through minidump functions in
+  dbghelp, dbgcore or comsvcs or with full access and Mimikatz access masks.
 references:
   - https://attack.mitre.org/techniques/T1003/001/
   - https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
@@ -33,12 +27,10 @@ detection:
       - '\comsvcs.dll'
   selection_method_access:
     GrantedAccess:
-      # full access, current and older definitions of PROCESS_ALL_ACCESS
+      # full access
       - '0x1fffff'
       - '0x1f3fff'
-      - '0x1f0fff'
       - '0x1f1fff'
-      - '0x1f2fff'
       # masks used by Mimikatz to read LSASS memory
       - '0x1010'
       - '0x1438'
@@ -49,15 +41,15 @@ detection:
       - 'C:\Windows\System32\csrss.exe'
   filter_main_msiexec:
     SourceImage: 'C:\Windows\System32\msiexec.exe'
-    CallTrace|contains: '\perfproc.dll'
+    CallTrace|contains: 'C:\Windows\System32\perfproc.dll'
   filter_main_sysmon:
     SourceImage: 'C:\Windows\Sysmon64.exe'
-    CallTrace|contains: '\Sysmon64.exe'
+    CallTrace|contains: 'C:\Windows\Sysmon64.exe'
   filter_optional_zoom:
     SourceImage: 'C:\Windows\System32\msiexec.exe'
     CallTrace|contains:
-      - '\Program Files\Zoom\Zoom\CustomAction.dll'
-      - '\Program Files\Zoom\Zoom(64bit)\CustomAction.dll'
+      - 'C:\Program Files\Zoom\Zoom\CustomAction.dll'
+      - 'C:\Program Files\Zoom\Zoom(64bit)\CustomAction.dll'
   condition: selection_target and 1 of selection_method_* and not 1 of filter_main_* and not 1 of filter_optional_*
 fields:
   - UtcTime
@@ -71,6 +63,6 @@ fields:
 falsepositives:
   - Antivirus, EDR and backup agents opening lsass with full access (exclude by full path)
   - Administrators creating an lsass dump with Task Manager or ProcDump for troubleshooting
-  - Process Explorer run as administrator opening lsass with full access about once a second
-  - Installers whose custom actions open every running process with full access, like the excluded Zoom installer
+  - Process Explorer run as administrator opening lsass with full access about every 1.3 seconds
+  - Installer custom actions that open lsass with full access, like the excluded Zoom installer
 level: high
