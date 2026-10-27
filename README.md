@@ -113,8 +113,8 @@ source of your Sysmon data to the search. Backends for other SIEMs are listed in
 2. Add `tests.yml` with at least one log the rule must fire on (`min_results`) and one it must
    stay silent on (`max_results: 0`). The format is defined in [`tools/cases.py`](tools/cases.py).
    Logs are read by `sourcetype`. [`tools/logs.py`](tools/logs.py) has readers for
-   `XmlWinEventLog`, the Windows event logs in splunk/attack_data, and `auditd`, Linux audit
-   records from audit.log or `ausearch -i`.
+   `XmlWinEventLog`, the Windows event logs in splunk/attack_data, and `linux_audit`, a raw
+   Linux audit.log. A log can be one file inside a zip archive: set `member` to its path.
 3. Add `README.md` with the detection card. An existing card shows the expected sections.
 4. Run `uv run pytest`, and `tools/goodlog.sh` for Windows rules.
 5. Open a pull request. CI runs the same checks.
