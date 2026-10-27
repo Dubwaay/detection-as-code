@@ -1,10 +1,12 @@
 """Download test datasets and parse them into events."""
 
 import hashlib
+import io
 import re
 import shutil
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -21,6 +23,15 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _keep(partial: Path, path: Path, expected: str, origin: str) -> Path:
+    actual = sha256(partial)
+    if actual != expected:
+        partial.unlink()
+        raise ValueError(f"{origin}: sha256 is {actual}, expected {expected}")
+    partial.replace(path)
+    return path
+
+
 def download(url: str, expected: str, path: Path) -> Path:
     """path, downloaded from url unless it is already there with the expected sha256."""
     if path.is_file() and sha256(path) == expected:
@@ -29,17 +40,70 @@ def download(url: str, expected: str, path: Path) -> Path:
     partial = path.with_suffix(".part")
     with urllib.request.urlopen(url, timeout=60) as response, partial.open("wb") as f:
         shutil.copyfileobj(response, f)
-    actual = sha256(partial)
-    if actual != expected:
-        partial.unlink()
-        raise ValueError(f"{url}: sha256 is {actual}, expected {expected}")
-    partial.replace(path)
-    return path
+    return _keep(partial, path, expected, url)
+
+
+class RangeReader(io.RawIOBase):
+    """A remote file read with HTTP range requests, so zipfile can seek in it."""
+
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self.pos = 0
+        _, self.size = self._get(0, 0)
+
+    def _get(self, start: int, end: int) -> tuple[bytes, int]:
+        request = urllib.request.Request(self.url, headers={"Range": f"bytes={start}-{end}"})
+        with urllib.request.urlopen(request, timeout=60) as response:
+            if response.status != 206:
+                raise ValueError(f"{self.url}: the server ignores range requests")
+            total = int(response.headers["Content-Range"].rpartition("/")[2])
+            return response.read(), total
+
+    def readable(self) -> bool:
+        return True
+
+    def seekable(self) -> bool:
+        return True
+
+    def tell(self) -> int:
+        return self.pos
+
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+        base = {io.SEEK_SET: 0, io.SEEK_CUR: self.pos, io.SEEK_END: self.size}[whence]
+        self.pos = base + offset
+        return self.pos
+
+    def readinto(self, buffer) -> int:
+        if self.pos >= self.size:
+            return 0
+        data, _ = self._get(self.pos, min(self.pos + len(buffer), self.size) - 1)
+        buffer[: len(data)] = data
+        self.pos += len(data)
+        return len(data)
+
+
+def download_member(url: str, member: str, expected: str, path: Path) -> Path:
+    """path, extracted from the zip at url unless it is already there with the expected sha256.
+
+    Only the archive index and the member are downloaded. Public datasets ship whole hosts in
+    archives of hundreds of MB, while a test needs one log file.
+    """
+    if path.is_file() and sha256(path) == expected:
+        return path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_suffix(".part")
+    remote = io.BufferedReader(RangeReader(url), buffer_size=1 << 20)
+    with zipfile.ZipFile(remote) as archive, archive.open(member) as src, partial.open("wb") as f:
+        shutil.copyfileobj(src, f, 1 << 20)
+    return _keep(partial, path, expected, f"{url} {member}")
 
 
 def fetch(dataset: Dataset) -> Path:
     """Path to the dataset file, downloaded into the cache on first use."""
-    return download(str(dataset.url), dataset.sha256, CACHE / dataset.sha256)
+    path = CACHE / dataset.sha256
+    if dataset.member:
+        return download_member(str(dataset.url), dataset.member, dataset.sha256, path)
+    return download(str(dataset.url), dataset.sha256, path)
 
 
 def _local(tag: str) -> str:
@@ -67,47 +131,31 @@ def xml_events(path: Path) -> Iterator[dict[str, str]]:
         yield fields
 
 
-AUDIT_LINE = re.compile(r"type=(?P<type>\S+) msg=audit\((?P<stamp>[^)]*)\)\s*:\s*(?P<body>.*)")
-AUDIT_FIELD = re.compile(r'(\w+)=("[^"]*"|\S*)')
-HEX = re.compile(r"(?:[0-9A-F]{2})+")
+AUDIT_LINE = re.compile(r"type=(?P<type>\S+) msg=audit\([^)]*\)\s*:\s*(?P<body>.*)")
+# A value is quoted or ends at a space, a quote or the 0x1d byte. Python's \s covers 0x1d.
+AUDIT_FIELD = re.compile(r"(?<![\w-])([A-Za-z_][\w-]*)=(\"[^\"]*\"|[^\s'\"]*)")
 
 
-def auditd_records(path: Path) -> Iterator[dict[str, str]]:
-    """auditd records, one per line, from audit.log or from ausearch -i.
+def linux_audit_records(path: Path) -> Iterator[dict[str, str]]:
+    """Records of a raw audit.log, one per line, with field names as in the log.
 
-    In audit.log a proctitle or an EXECVE argument with a space or a NUL is written as hex.
-    Those values are decoded with NUL turned into a space, as ausearch -i shows them.
+    Values stay as written: a proctitle or an EXECVE argument with a space is hex. auditd 3
+    appends names of numeric values after a 0x1d byte (syscall=59 ... SYSCALL=execve). Those
+    are fields of their own. User-space records wrap their fields in msg='...'.
     """
-    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+    # str.splitlines() would also split at 0x1d
+    for line in path.read_text(encoding="utf-8", errors="replace").split("\n"):
         match = AUDIT_LINE.match(line)
         if not match:
             continue
-        kind = match["type"]
-        # audit.log stamps with epoch seconds, ausearch -i with a date
-        raw = re.fullmatch(r"\d+\.\d+:\d+", match["stamp"])
-        # audit.log adds the same fields in readable form after \x1d (ARCH=, SYSCALL=, AUID=).
-        # SQLite column names ignore case, so SYSCALL would overwrite syscall.
-        body = match["body"].partition("\x1d")[0].rstrip()
-        # ausearch -i prints proctitle decoded, spaces included, as the only field
-        if kind == "PROCTITLE" and body.startswith("proctitle=") and " " in body:
-            fields = [("proctitle", body.removeprefix("proctitle="))]
-        else:
-            fields = AUDIT_FIELD.findall(body)
-        record = {"type": kind}
-        for name, value in fields:
-            if value.startswith('"'):
-                value = value.strip('"')
-            elif (
-                raw
-                and (name == "proctitle" or (kind == "EXECVE" and re.fullmatch(r"a\d+", name)))
-                and HEX.fullmatch(value)
-            ):
-                value = bytes.fromhex(value).replace(b"\0", b" ").decode(errors="replace").strip()
-            record[name] = value
+        record = {"type": match["type"]}
+        for name, value in AUDIT_FIELD.findall(match["body"]):
+            if name != "msg":
+                record[name] = value.strip('"')
         yield record
 
 
-READERS = {"XmlWinEventLog": xml_events, "auditd": auditd_records}
+READERS = {"XmlWinEventLog": xml_events, "linux_audit": linux_audit_records}
 
 
 def events(dataset: Dataset) -> Iterator[dict[str, str]]:

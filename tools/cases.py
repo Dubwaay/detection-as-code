@@ -17,6 +17,8 @@ class Dataset(Strict):
     """A public log file, pinned by its hash."""
 
     url: HttpUrl
+    # A file inside the zip archive at url. sha256 and size are those of the file.
+    member: str | None = Field(default=None, min_length=1)
     sha256: Sha256
     size: int = Field(gt=0)
     sourcetype: str
