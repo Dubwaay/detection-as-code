@@ -21,21 +21,25 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def fetch(dataset: Dataset) -> Path:
-    """Path to the dataset file, downloaded into the cache on first use."""
-    path = CACHE / dataset.sha256
-    if path.is_file() and sha256(path) == dataset.sha256:
+def download(url: str, expected: str, path: Path) -> Path:
+    """path, downloaded from url unless it is already there with the expected sha256."""
+    if path.is_file() and sha256(path) == expected:
         return path
-    CACHE.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_suffix(".part")
-    with urllib.request.urlopen(str(dataset.url), timeout=60) as response, partial.open("wb") as f:
+    with urllib.request.urlopen(url, timeout=60) as response, partial.open("wb") as f:
         shutil.copyfileobj(response, f)
     actual = sha256(partial)
-    if actual != dataset.sha256:
+    if actual != expected:
         partial.unlink()
-        raise ValueError(f"{dataset.url}: sha256 is {actual}, expected {dataset.sha256}")
+        raise ValueError(f"{url}: sha256 is {actual}, expected {expected}")
     partial.replace(path)
     return path
+
+
+def fetch(dataset: Dataset) -> Path:
+    """Path to the dataset file, downloaded into the cache on first use."""
+    return download(str(dataset.url), dataset.sha256, CACHE / dataset.sha256)
 
 
 def _local(tag: str) -> str:

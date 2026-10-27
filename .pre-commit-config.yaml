@@ -30,10 +30,10 @@ repos:
       - id: sigma-check
         name: sigma check
         # every rule file; tests.yml holds test cases, not a rule
-        entry: bash -c 'uv run --locked sigma check -i $(find detections -name "*.yml" ! -name tests.yml)'
+        entry: bash -c 'uv run --locked python -m tools.sigma_check -i $(find detections -name "*.yml" ! -name tests.yml)'
         language: system
         pass_filenames: false
-        files: ^detections/
+        files: ^(detections/|tools/attack\.py$|tools/sigma_check\.py$)
       - id: pytest
         name: pytest
         entry: uv run --locked pytest -q
