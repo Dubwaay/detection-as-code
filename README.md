@@ -24,8 +24,8 @@ with a detection card that covers its blind spots, false positives and triage st
 |---|---|
 | [`detections/`](detections) | Rules grouped by platform, one folder per rule |
 | [`tests/`](tests) | pytest checks for rules, test cases and cards |
-| [`tools/`](tools) | Log readers, SQLite replay, card parser, goodlog script |
-| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI |
+| [`tools/`](tools) | Log readers, SQLite replay, card parser, goodlog script, pinned ATT&CK release |
+| [`.github/workflows/`](.github/workflows) | CI and the weekly ATT&CK release check |
 
 Every rule folder has the same three files:
 
@@ -40,14 +40,18 @@ detections/<platform>/<name>/
 
 | Check | What it does | Runs in |
 |---|---|---|
-| `sigma check` | Syntax, ATT&CK tags and rule IDs | pre-commit, CI |
+| [`tools/sigma_check.py`](tools/sigma_check.py) | Runs `sigma check`: syntax, rule IDs and ATT&CK tags against the release pinned in [`tools/attack.py`](tools/attack.py) | pre-commit, CI |
 | [`tests/test_detections.py`](tests/test_detections.py) | One rule and one `tests.yml` per folder, at least one case the rule must fire on and one it must stay silent on | pre-commit, CI |
 | [`tests/test_logs.py`](tests/test_logs.py) | Runs the rule over the logs from `tests.yml`. pySigma converts the rule to SQL and SQLite runs it over the parsed events | pre-commit, CI |
 | [`tests/test_cards.py`](tests/test_cards.py) | The card follows the ADS section order, its title, ATT&CK tags, level and links match the rule, its example event exists in the test logs | pre-commit, CI |
 | [`tools/goodlog.sh`](tools/goodlog.sh) | Runs all rules over clean Windows logs from [evtx-baseline](https://github.com/NextronSystems/evtx-baseline) with evtx-sigma-checker. A hit fails the run unless it is listed in [`tools/goodlog-known-fps.csv`](tools/goodlog-known-fps.csv) | CI, five baselines |
+| [`tools/attack_update.sh`](tools/attack_update.sh) | Opens an issue when MITRE has an ATT&CK release newer than the one pinned in `tools/attack.py` | CI, weekly |
 
-Test logs are downloaded by URL into `.cache/` and checked against the sha256 from `tests.yml`.
-They are not stored in the repo.
+Test logs and the ATT&CK release are downloaded into `.cache/` and checked against their
+sha256. They are not stored in the repo.
+
+When MITRE publishes a new ATT&CK release, the weekly check opens an issue. Set `VERSION` and
+`SHA256` in `tools/attack.py` to the new release and run the checks.
 
 ## Detection cards
 
@@ -69,7 +73,7 @@ git clone https://github.com/Dubwaay/detection-as-code.git
 cd detection-as-code
 uv sync --locked
 uv run pytest
-uv run sigma check -i $(find detections -name '*.yml' ! -name tests.yml)
+uv run python -m tools.sigma_check -i $(find detections -name '*.yml' ! -name tests.yml)
 ```
 
 Run the rules over a clean baseline. The baseline and the checker are downloaded once into
@@ -132,7 +136,8 @@ source of your Sysmon data to the search. Backends for other SIEMs are listed in
   the cards.
 - [Palantir ADS framework](https://github.com/palantir/alerting-detection-strategy-framework)
   (MIT): the card format.
-- [MITRE ATT&CK](https://attack.mitre.org/).
+- [MITRE ATT&CK](https://attack.mitre.org/), STIX data from
+  [attack-stix-data](https://github.com/mitre-attack/attack-stix-data).
 
 ## License
 
