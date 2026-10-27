@@ -2,10 +2,8 @@ title: Command Or Script Interpreter Running Under Another Name
 id: c51e388f-6abf-4f1e-ab0b-c3dd6166b76c
 status: experimental
 description: |
-  Detects cmd.exe, PowerShell, wscript, cscript or mshta started from a file with another name.
-  OriginalFileName shows the real program, for example Cmd.Exe for C:\Windows\Temp\lsass.exe.
-  Not covered: one interpreter renamed to another (cscript.exe as wscript.exe), an edited
-  OriginalFileName, other programs under system names, double extensions and Sysmon before 10.
+  Detects cmd.exe, PowerShell, pwsh, wscript, cscript or mshta started from a file with another
+  name. OriginalFileName shows the real program.
 references:
   - https://attack.mitre.org/techniques/T1036/003/
   - https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1036.003/T1036.003.md
