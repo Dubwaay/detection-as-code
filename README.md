@@ -112,8 +112,9 @@ source of your Sysmon data to the search. Backends for other SIEMs are listed in
    SigmaHQ does, for example `proc_creation_win_<name>.yml`.
 2. Add `tests.yml` with at least one log the rule must fire on (`min_results`) and one it must
    stay silent on (`max_results: 0`). The format is defined in [`tools/cases.py`](tools/cases.py).
-   Logs are read by `sourcetype`. [`tools/logs.py`](tools/logs.py) has a reader for
-   `XmlWinEventLog`, the format of the Windows logs in splunk/attack_data.
+   Logs are read by `sourcetype`. [`tools/logs.py`](tools/logs.py) has readers for
+   `XmlWinEventLog`, the Windows event logs in splunk/attack_data, and `auditd`, Linux audit
+   records from audit.log or `ausearch -i`.
 3. Add `README.md` with the detection card. An existing card shows the expected sections.
 4. Run `uv run pytest`, and `tools/goodlog.sh` for Windows rules.
 5. Open a pull request. CI runs the same checks.

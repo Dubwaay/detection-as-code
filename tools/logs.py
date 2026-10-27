@@ -67,7 +67,47 @@ def xml_events(path: Path) -> Iterator[dict[str, str]]:
         yield fields
 
 
-READERS = {"XmlWinEventLog": xml_events}
+AUDIT_LINE = re.compile(r"type=(?P<type>\S+) msg=audit\((?P<stamp>[^)]*)\)\s*:\s*(?P<body>.*)")
+AUDIT_FIELD = re.compile(r'(\w+)=("[^"]*"|\S*)')
+HEX = re.compile(r"(?:[0-9A-F]{2})+")
+
+
+def auditd_records(path: Path) -> Iterator[dict[str, str]]:
+    """auditd records, one per line, from audit.log or from ausearch -i.
+
+    In audit.log a proctitle or an EXECVE argument with a space or a NUL is written as hex.
+    Those values are decoded with NUL turned into a space, as ausearch -i shows them.
+    """
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        match = AUDIT_LINE.match(line)
+        if not match:
+            continue
+        kind = match["type"]
+        # audit.log stamps with epoch seconds, ausearch -i with a date
+        raw = re.fullmatch(r"\d+\.\d+:\d+", match["stamp"])
+        # audit.log adds the same fields in readable form after \x1d (ARCH=, SYSCALL=, AUID=).
+        # SQLite column names ignore case, so SYSCALL would overwrite syscall.
+        body = match["body"].partition("\x1d")[0].rstrip()
+        # ausearch -i prints proctitle decoded, spaces included, as the only field
+        if kind == "PROCTITLE" and body.startswith("proctitle=") and " " in body:
+            fields = [("proctitle", body.removeprefix("proctitle="))]
+        else:
+            fields = AUDIT_FIELD.findall(body)
+        record = {"type": kind}
+        for name, value in fields:
+            if value.startswith('"'):
+                value = value.strip('"')
+            elif (
+                raw
+                and (name == "proctitle" or (kind == "EXECVE" and re.fullmatch(r"a\d+", name)))
+                and HEX.fullmatch(value)
+            ):
+                value = bytes.fromhex(value).replace(b"\0", b" ").decode(errors="replace").strip()
+            record[name] = value
+        yield record
+
+
+READERS = {"XmlWinEventLog": xml_events, "auditd": auditd_records}
 
 
 def events(dataset: Dataset) -> Iterator[dict[str, str]]:
