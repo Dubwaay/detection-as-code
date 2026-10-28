@@ -1,0 +1,39 @@
+rule_id: 0c9e8617-5f40-40ac-b5f2-f944078c8794
+cases:
+  - name: tp_sudo_cat_and_linpeas
+    description: CAM-LDS scenario 1, video server. The attacker runs sudo cat /etc/shadow as webadmin. linPEAS runs cat on shadow, gshadow and their backups as www-data.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_localaccount.zip?download=1
+        member: scenario_1_sudo_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: 40eefe42f94b7cfbd69a1b65c9d7eb31809b8b810a6d8f9a25887cb30002b8f5
+        size: 20343000
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 2
+      max_results: 2
+      match: {a0: 'cat', a1: '/etc/shadow'}
+  - name: tp_cat_after_ssh_login
+    description: CAM-LDS scenario 3, repository server. The attacker logs in over SSH and runs cat /etc/shadow.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_3_ssh_apt.zip?download=1
+        member: scenario_3_ssh_apt/reposerver/logs/log/audit/audit.log
+        sha256: 072f32aae0b256cf8cf1805557eedabd62cf6289a17787347daf0b040ee5a158
+        size: 17731399
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 1
+      max_results: 1
+      match: {a0: 'cat', a1: '/etc/shadow'}
+  - name: fp_dns_server_background
+    description: CAM-LDS scenario 1, DNS server for the whole run. No attack step on this host. stat runs on /etc/shadow, /etc/gshadow and their - copies.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_localaccount.zip?download=1
+        member: scenario_1_sudo_localaccount/corpdns/logs/log/audit/audit.log
+        sha256: 225bc78774112ae461e878a904fcc8ca1d6242390faab695d38e3e23f6990234
+        size: 4671615
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0
