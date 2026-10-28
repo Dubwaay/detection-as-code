@@ -127,8 +127,8 @@ source of your Sysmon data to the search. Backends for other SIEMs are listed in
 - [splunk/attack_data](https://github.com/splunk/attack_data) (Apache-2.0): attack logs for
   the test cases.
 - [CAM-LDS](https://zenodo.org/records/18861762) (CC BY 4.0): Linux audit logs of attack
-  scenarios for the test cases. M. Landauer et al., "CAM-LDS: Cyber Attack Manifestations for
-  Automatic Interpretation of System Logs and Security Alerts", International Journal of
+  scenarios for the test cases. M. Landauer et al., [CAM-LDS: Cyber Attack Manifestations for
+  Automatic Interpretation of System Logs and Security Alerts](https://doi.org/10.1007/s10207-026-01318-x), International Journal of
   Information Security, 2026.
 - [NextronSystems/evtx-baseline](https://github.com/NextronSystems/evtx-baseline) (Apache-2.0):
   clean Windows logs and evtx-sigma-checker for goodlog.
