@@ -1,0 +1,102 @@
+title: Shadow File Read Via Command Line Utility
+id: 0c9e8617-5f40-40ac-b5f2-f944078c8794
+status: experimental
+description: |
+  Detects cat, less, grep, cp and similar tools started with /etc/shadow or /etc/gshadow as an
+  argument. The path must be a whole argument of the EXECVE record.
+references:
+  - https://attack.mitre.org/techniques/T1003/008/
+  - https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1003.008/T1003.008.md
+author: Dubwaay
+date: 2026-10-28
+tags:
+  - attack.credential-access
+  - attack.t1003.008
+logsource:
+  product: linux
+  service: auditd
+detection:
+  selection_tool_name:
+    type: EXECVE
+    a0:
+      - 'cat'
+      - 'tac'
+      - 'nl'
+      - 'head'
+      - 'tail'
+      - 'less'
+      - 'more'
+      - 'strings'
+      - 'od'
+      - 'xxd'
+      - 'hexdump'
+      - 'base64'
+      - 'base32'
+      - 'grep'
+      - 'egrep'
+      - 'awk'
+      - 'sed'
+      - 'cp'
+      - 'vi'
+      - 'vim'
+      - 'view'
+      - 'nano'
+      - 'unshadow'
+  selection_tool_path:
+    type: EXECVE
+    a0|endswith:
+      - '/cat'
+      - '/tac'
+      - '/nl'
+      - '/head'
+      - '/tail'
+      - '/less'
+      - '/more'
+      - '/strings'
+      - '/od'
+      - '/xxd'
+      - '/hexdump'
+      - '/base64'
+      - '/base32'
+      - '/grep'
+      - '/egrep'
+      - '/awk'
+      - '/sed'
+      - '/cp'
+      - '/vi'
+      - '/vim'
+      - '/view'
+      - '/nano'
+      - '/unshadow'
+  selection_file:
+    - a1:
+        - '/etc/shadow'
+        - '/etc/shadow-'
+        - '/etc/shadow~'
+        - '/etc/gshadow'
+        - '/etc/gshadow-'
+        - '/etc/gshadow~'
+    - a2:
+        - '/etc/shadow'
+        - '/etc/shadow-'
+        - '/etc/shadow~'
+        - '/etc/gshadow'
+        - '/etc/gshadow-'
+        - '/etc/gshadow~'
+    - a3:
+        - '/etc/shadow'
+        - '/etc/shadow-'
+        - '/etc/shadow~'
+        - '/etc/gshadow'
+        - '/etc/gshadow-'
+        - '/etc/gshadow~'
+  condition: 1 of selection_tool_* and selection_file
+fields:
+  - a0
+  - a1
+  - a2
+  - a3
+falsepositives:
+  - Administrators who read /etc/shadow by hand with sudo
+  - Backup or configuration scripts that copy /etc/shadow with cp
+level: medium
