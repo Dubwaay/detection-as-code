@@ -2,8 +2,8 @@ title: Shadow File Read Via Command Line Utility
 id: 0c9e8617-5f40-40ac-b5f2-f944078c8794
 status: experimental
 description: |
-  Detects cat, less, grep, cp and similar tools started with /etc/shadow or /etc/gshadow as an
-  argument. The path must be a whole argument of the EXECVE record.
+  Detects cat, less, grep, cp and similar tools started with /etc/shadow or /etc/gshadow as one
+  of the first three arguments.
 references:
   - https://attack.mitre.org/techniques/T1003/008/
   - https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1003.008/T1003.008.md
@@ -92,6 +92,7 @@ detection:
         - '/etc/gshadow~'
   condition: 1 of selection_tool_* and selection_file
 fields:
+  - msg
   - a0
   - a1
   - a2

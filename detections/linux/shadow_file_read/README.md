@@ -57,7 +57,7 @@ A blind spot appears whenever one of these assumptions breaks, for example when 
 
 | Source | How to recognise it | Handling |
 |---|---|---|
-| Administrator reading the file by hand | sudo before the tool, `AUID` of an administrator and a terminal in `tty` of the SYSCALL record | not seen in the test logs. Confirm with the administrator, no exclusion |
+| Administrator reading the file by hand | run through sudo, `AUID` of an administrator, a terminal in `tty` | not seen in the test logs. Confirm with the administrator, no exclusion |
 | Backup or configuration scripts copying the file | cp with /etc/shadow, no terminal (`tty=(none)`), the same command at regular times | not seen in the test logs. Add a `filter_optional_*` block with the target path of the copy |
 
 ## Validation
