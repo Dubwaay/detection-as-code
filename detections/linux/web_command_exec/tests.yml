@@ -1,0 +1,52 @@
+rule_id: ec6771bc-8f66-4d1b-86c2-30ebee13da9c
+cases:
+  - name: tp_zoneminder_exploit_sudo
+    description: CAM-LDS scenario 1, video server, variant sudo + localaccount. The ZoneMinder exploit starts a Python loader as www-data, then the attacker works as www-data from a terminal.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_localaccount.zip?download=1
+        member: scenario_1_sudo_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: 40eefe42f94b7cfbd69a1b65c9d7eb31809b8b810a6d8f9a25887cb30002b8f5
+        size: 20343000
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 7831
+      max_results: 7831
+      match: {exe: '*/python3.9', tty: '(none)'}
+  - name: tp_zoneminder_exploit_pwnkit
+    description: CAM-LDS scenario 1, video server, variant pwnkit + localaccount. The same exploit and Python loader, then PwnKit.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_pwnkit_localaccount.zip?download=1
+        member: scenario_1_pwnkit_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: 9b340b09d6c28e09e0e3cdd4be60acbe6fa13388976bb82a5d3c4e8b03eaf02e
+        size: 18033190
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 7852
+      max_results: 7852
+      match: {exe: '*/python3.9', tty: '(none)'}
+  - name: tp_zoneminder_exploit_racecondition
+    description: CAM-LDS scenario 1, video server, variant racecondition + localaccount. The same exploit and Python loader, then the logrotate race condition.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_racecondition_localaccount.zip?download=1
+        member: scenario_1_racecondition_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: fba1eee58104e1c93f592c85ddcbd85a64990556fc12df931eb339a6d3cea71a
+        size: 19569534
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 7908
+      max_results: 7908
+      match: {exe: '*/python3.9', tty: '(none)'}
+  - name: fp_zoneminder_background
+    description: CAM-LDS scenario 5, video server for the whole run. No web exploit. ZoneMinder runs perl, sh, uname, killall, zmc, df, date and true as www-data, all without a terminal.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_5.zip?download=1
+        member: scenario_5/videoserver/logs/log/audit/audit.log
+        sha256: e4f0f3b7d87195fe6af9e02086541f188c11f9a2d48d8c1a7dc6eecc0f3d5f24
+        size: 5777913
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0

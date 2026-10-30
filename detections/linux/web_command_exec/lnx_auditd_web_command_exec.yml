@@ -1,0 +1,85 @@
+title: Suspicious Tool Or Terminal Process Under Web Server Account
+id: ec6771bc-8f66-4d1b-86c2-30ebee13da9c
+status: experimental
+description: |
+  Detects a web server account without a login session starting bash, Python, curl, nc or a
+  similar tool, a program from /tmp, /var/tmp or /dev/shm, or any program with a terminal, as
+  commands run through a web shell do.
+references:
+  - https://attack.mitre.org/techniques/T1505/003/
+  - https://attack.mitre.org/techniques/T1059/004/
+author: Dubwaay
+date: 2026-10-30
+tags:
+  - attack.persistence
+  - attack.t1505.003
+  - attack.execution
+  - attack.t1059.004
+logsource:
+  product: linux
+  service: auditd
+detection:
+  selection_web_process:
+    type: SYSCALL
+    SYSCALL: execve
+    EUID:
+      - 'www-data'
+      - 'apache'
+      - 'nginx'
+      - 'wwwrun'
+      - 'http'
+      - 'lighttpd'
+      - 'caddy'
+      - 'tomcat'
+    AUID: 'unset'
+  selection_tool_name:
+    exe|endswith:
+      # shells for interactive work
+      - '/zsh'
+      - '/ksh'
+      - '/ksh93'
+      # reverse shells and tunnels
+      - '/nc'
+      - '/ncat'
+      - '/netcat'
+      - '/nc.openbsd'
+      - '/nc.traditional'
+      - '/socat'
+      - '/socat1'
+      - '/telnet'
+      - '/telnet.netkit'
+      - '/inetutils-telnet'
+      # downloading tools
+      - '/curl'
+      - '/wget'
+      # unpacking hidden payloads
+      - '/base64'
+      - '/xxd'
+  selection_tool_bash:
+    # /bin/sh is bash on RHEL, comm keeps the name the program was started as
+    exe|endswith: '/bash'
+    comm: 'bash'
+  selection_tool_interpreter:
+    # exe is the real file after links, such as python3.9, ruby2.7 or lua5.3
+    exe|re: '/(python|ruby|lua)[0-9.]*$'
+  selection_tool_temp_path:
+    exe|startswith:
+      - '/tmp/'
+      - '/var/tmp/'
+      - '/dev/shm/'
+  filter_no_terminal:
+    tty: '(none)'
+  condition: selection_web_process and (1 of selection_tool_* or not filter_no_terminal)
+fields:
+  - msg
+  - pid
+  - ppid
+  - EUID
+  - AUID
+  - tty
+  - comm
+  - exe
+falsepositives:
+  - Web applications that call Python, bash or curl themselves, such as CGI scripts or PHP code that runs a Python script
+  - Services and workers that run scripts under the web server account
+level: medium
