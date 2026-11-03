@@ -39,6 +39,19 @@ cases:
       min_results: 7908
       max_results: 7908
       match: {exe: '*/python3.9', tty: '(none)'}
+  - name: tp_nextcloud_exploit_among_docker_exec_jobs
+    description: CAM-LDS scenario 7, Docker host. The Nextcloud exploit runs curl as www-data. A host cron job runs bash -c through docker exec under www-data every 5 minutes and must not match.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_7.zip?download=1
+        member: scenario_7/docker/logs/log/audit/audit.log
+        sha256: 6ca8722baa03dedf112c4eb2ad007d1c8556217d6dd81b3b7f2522306bdf70e7
+        size: 6559894
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 1
+      max_results: 1
+      match: {exe: '*/curl', tty: '(none)'}
   - name: fp_zoneminder_background
     description: CAM-LDS scenario 5, video server for the whole run. No web exploit. ZoneMinder runs perl, sh, uname, killall, zmc, df, date and true as www-data, all without a terminal.
     datasets:
