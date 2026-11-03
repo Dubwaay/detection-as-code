@@ -19,20 +19,20 @@ Tooling
 ## Strategy Abstract
 
 - auditd SYSCALL records of program starts (`execve`) are the only data source. No enrichment in the SIEM.
-- The rule fires when a web server account without a login session starts bash, Python, curl, nc or a similar tool, a program from a temporary directory, or any program with a terminal.
-- `sh`, which web applications use, and administrators with a login session do not match. The False Positives section lists what is left.
+- The rule fires when a web server account without a login session starts Python, curl, nc or a similar tool, a program from a temporary directory, or any program with a terminal.
+- `sh` and `bash` without a terminal, which web applications and container jobs use, and administrators with a login session do not match. The False Positives section lists what is left.
 
 ## Technical Context
 
 A web server runs its worker processes under a service account: www-data on Debian and Ubuntu, apache or nginx on RHEL. The code of the web application runs under the same account. Commands sent through a web shell or a command injection run under it too.
 
-A web application starts programs by itself. PHP functions such as `shell_exec` run a command through `sh -c`. So `sh` under the web account is normal. The rule looks for three signs instead:
+A web application starts programs by itself. PHP functions such as `shell_exec` run a command through `sh -c`. Host jobs often run `docker exec -u www-data <container> bash -c <command>`. The Docker daemon creates that process, so its `AUID` is `unset` too. So `sh` and `bash` under the web account are normal. On RHEL `/bin/sh` is bash as well. The rule looks for three signs instead:
 
-- A tool the web application usually does not need, such as Python, bash, curl, wget, nc, socat or base64. Attackers use them to start a loader or a reverse shell and to download tools.
+- A tool the web application usually does not need, such as Python, curl, wget, nc, socat or base64. Attackers use them to start a loader or a reverse shell and to download tools.
 - A program from /tmp, /var/tmp or /dev/shm. Any account can write to them, so attackers drop their own tools there.
 - A terminal. A web server has none, its `tty` is `(none)`. An attacker who turns a reverse shell into a terminal gets one, such as `pts0`.
 
-`exe` is the real file after all links. On Ubuntu 24.04 python3 is python3.12, socat is socat1 and telnet is inetutils-telnet, so the rule matches interpreter versions by pattern and lists other tools by their real file names. On RHEL `/bin/sh` is bash, so the rule takes bash only when `comm`, the name the program was started as, is bash.
+`exe` is the real file after all links. On Ubuntu 24.04 python3 is python3.12, socat is socat1 and telnet is inetutils-telnet, so the rule matches interpreter versions by pattern and lists other tools by their real file names.
 
 `AUID` is the account a person logged in with. A web server started by systemd has no login session, its `AUID` is `unset`. An administrator who runs `sudo -u www-data bash` keeps their own `AUID`, so the rule skips them.
 
@@ -51,9 +51,10 @@ exe: /usr/bin/python3.9
 
 Blind spots
 
-- Commands through `sh`, which the web application also uses, without a terminal and without the listed tools: a simple web shell or a reverse shell started as `sh`.
+- Commands through `sh` or `bash` without a terminal and without the listed tools: a simple web shell or a reverse shell such as `bash -i`.
 - Tools run through busybox, where `exe` is busybox.
-- A listed tool copied under another name outside /tmp, /var/tmp and /dev/shm, or bash started through a link with another name.
+- A listed tool copied under another name outside /tmp, /var/tmp and /dev/shm.
+- An attacker's own program in the web root or another directory outside /tmp, /var/tmp and /dev/shm.
 - Interpreters left out of the list because web applications use them: perl, php, node.
 - A web server under an account outside the list, such as the user of a php-fpm pool.
 - Processes in containers when the host `/etc/passwd` has another name for the user ID.
@@ -63,7 +64,7 @@ Assumptions
 
 - The web server is started by systemd or another service manager. Started from a login session, it inherits that `AUID`.
 - auditd logs execve for processes without a login session. Audit rules with `-F auid!=unset` skip them.
-- audit.log is in the enriched format and reaches the SIEM unchanged, with `SYSCALL`, `EUID`, `AUID`, `tty`, `comm` and `exe` extracted as fields.
+- audit.log is in the enriched format and reaches the SIEM unchanged, with `SYSCALL`, `EUID`, `AUID`, `tty` and `exe` extracted as fields.
 
 A blind spot appears whenever one of these assumptions breaks, for example when an attacker stops auditd or deletes its rules.
 
@@ -71,8 +72,9 @@ A blind spot appears whenever one of these assumptions breaks, for example when 
 
 | Source | How to recognise it | Handling |
 |---|---|---|
-| Web application that calls Python, bash or curl itself | the same `exe` on every request or at regular times, no terminal | not seen in the test logs. Confirm with the application owner. A `filter_optional_*` on this `exe` also hides an attacker who uses the same tool |
+| Web application that calls Python or curl itself | the same `exe` on every request or at regular times, no terminal | not seen in the test logs. Confirm with the application owner. A `filter_optional_*` on this `exe` also hides an attacker who uses the same tool |
 | Service or worker that runs scripts under the web server account | `ppid` 1 (started by systemd), the same `exe` at every start, no terminal | not seen in the test logs. Add a `filter_optional_*` block with its `exe` and `ppid` 1 |
+| Host job that runs a listed tool in a container through `docker exec` | containerd-shim or runc as the parent, the same `exe` at regular times, no terminal | not seen in the test logs, where such jobs run `bash -c` and do not match. Confirm with the job owner. A `filter_optional_*` on this `exe` also hides an attacker who uses the same tool |
 
 ## Validation
 
@@ -85,9 +87,10 @@ Automated: pytest replays the rule over the logs in [tests.yml](tests.yml). [too
 | CAM-LDS scenario 1, video server, variant sudo (ZoneMinder exploit, Python loader, terminal) | 7831 hits: 5 without a terminal, 7826 with one |
 | CAM-LDS scenario 1, video server, variant pwnkit (the same exploit, then PwnKit) | 7852 hits: 5 without a terminal, 7847 with one |
 | CAM-LDS scenario 1, video server, variant racecondition (the same exploit, then the logrotate race condition) | 7908 hits: 6 without a terminal, 7902 with one |
+| CAM-LDS scenario 7, Docker host (Nextcloud exploit with curl, 35 cron jobs through `docker exec` that do not match) | 1 hit, curl |
 | CAM-LDS scenario 5, video server (ZoneMinder background) | 0 hits |
 
-The Splunk search converted from the rule returns the same counts on these four logs.
+The Splunk search converted from the rule returns the same counts on these five logs.
 
 ## Priority
 
