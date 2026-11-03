@@ -1,0 +1,37 @@
+rule_id: 25afe58e-20a6-4af3-a656-7f99166ee489
+cases:
+  - name: tp_container_writes_host_cron
+    description: CAM-LDS scenario 7, Docker host. Through the open Docker API the attacker starts a container with the host root mounted at /root and writes /root/etc/cron.d/sysvz.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_7.zip?download=1
+        member: scenario_7/docker/logs/log/audit/audit.log
+        sha256: 6ca8722baa03dedf112c4eb2ad007d1c8556217d6dd81b3b7f2522306bdf70e7
+        size: 6559894
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 1
+      max_results: 1
+      match: {name: '/root/etc/cron.d/sysvz', nametype: 'CREATE'}
+  - name: fp_repository_server_cron_and_accounts
+    description: CAM-LDS scenario 3, repository server. Daily cron jobs, account changes and reads of /etc/shadow, all by host paths.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_3_ssh_apt.zip?download=1
+        member: scenario_3_ssh_apt/reposerver/logs/log/audit/audit.log
+        sha256: 072f32aae0b256cf8cf1805557eedabd62cf6289a17787347daf0b040ee5a158
+        size: 17731399
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0
+  - name: fp_video_server_new_account
+    description: CAM-LDS scenario 1, video server. useradd writes /etc/passwd and /etc/shadow, crontabs are read, all by host paths.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_localaccount.zip?download=1
+        member: scenario_1_sudo_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: 40eefe42f94b7cfbd69a1b65c9d7eb31809b8b810a6d8f9a25887cb30002b8f5
+        size: 20343000
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0

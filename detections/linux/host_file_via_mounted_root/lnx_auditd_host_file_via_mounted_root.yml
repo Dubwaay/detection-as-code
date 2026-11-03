@@ -1,0 +1,56 @@
+title: Host System File Accessed Through A Mounted Root
+id: 25afe58e-20a6-4af3-a656-7f99166ee489
+status: experimental
+description: |
+  Detects a host cron, systemd, sudoers, account or SSH key file opened by a path that starts
+  somewhere else, as when a container writes to the host through a mounted root filesystem.
+references:
+  - https://attack.mitre.org/techniques/T1611/
+  - https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1611/T1611.md
+author: Dubwaay
+date: 2026-10-30
+tags:
+  - attack.privilege-escalation
+  - attack.t1611
+logsource:
+  product: linux
+  service: auditd
+detection:
+  selection:
+    type: PATH
+    name|contains:
+      - '/etc/cron.d/'
+      - '/etc/cron.daily/'
+      - '/etc/cron.hourly/'
+      - '/etc/cron.weekly/'
+      - '/etc/cron.monthly/'
+      - '/etc/crontab'
+      - '/var/spool/cron/'
+      - '/etc/systemd/system/'
+      - '/etc/sudoers'
+      - '/etc/passwd'
+      - '/etc/shadow'
+      - '/etc/ld.so.preload'
+      - '/.ssh/authorized_keys'
+  filter_main_parent_dir:
+    nametype: PARENT
+  filter_main_host_path:
+    name|startswith:
+      - '/etc/'
+      - '/var/spool/cron/'
+      - '/root/.ssh/'
+      - '/home/'
+  filter_main_container_storage:
+    name|startswith:
+      - '/var/lib/docker/'
+      - '/var/lib/containerd/'
+      - '/var/lib/containers/'
+  condition: selection and not 1 of filter_main_*
+fields:
+  - msg
+  - name
+  - nametype
+falsepositives:
+  - OS installers and image builders that write a system tree under another root, such as debootstrap
+  - Backup restore tools that write into a mounted copy of a system
+level: high
