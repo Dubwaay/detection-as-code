@@ -1,0 +1,37 @@
+rule_id: 94572327-1d3d-42f0-a819-bb7e7f983f82
+cases:
+  - name: tp_full_path
+    description: attack_data T1574.006, raw audit.log excerpt with PATH records only. Four records name /etc/ld.so.preload, two name the backup /etc/ld.so.preload~.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1574.006/linux_auditd_preload_file/linux_auditd_preload_file.log
+        sha256: b32a15ad4eea8121f58e95d0997f9e6d4b922e2c9ea1ea6441ba898768a476c7
+        size: 1365
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 4
+      max_results: 4
+      match: {name: /etc/ld.so.preload}
+  - name: tp_name_without_folder
+    description: attack_data T1574.006, ausearch -i excerpt with PATH and CWD records. The command ran in /etc, so three records name ld.so.preload without a folder.
+    datasets:
+      - url: https://media.githubusercontent.com/media/splunk/attack_data/aafa53ea228fbab8d9ac3e33c9275fab2136909d/datasets/attack_techniques/T1574.006/auditd_path_preload_file/path_preload.log
+        sha256: bf0e1802bdc54ca88f641f7e33088f48596afd026d4955bc52a0d8b6c5c720f3
+        size: 1488
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 3
+      max_results: 3
+      match: {name: ld.so.preload}
+  - name: fp_no_watch_on_the_file
+    description: CAM-LDS scenario 2, video server, variant rootkit. The library is added to the file, but this host has no watch on it, so the log has no PATH record.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_2_rootkit.zip?download=1
+        member: scenario_2_rootkit/videoserver/logs/log/audit/audit.log
+        sha256: 2a0a5a5c7c8c33572633add4b192d3a5ab11408c43e5d6efce34011c5da71155
+        size: 6256932
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0

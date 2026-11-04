@@ -1,0 +1,68 @@
+title: Shell Redirect Into ld.so.preload
+id: 45c00a22-639a-457f-bb3a-05cb12726f57
+status: experimental
+description: |
+  Detects a shell command string with a redirect to /etc/ld.so.preload in its arguments. Each
+  library named in this file loads into every program started on the host.
+references:
+  - https://attack.mitre.org/techniques/T1574/006/
+author: Dubwaay
+date: 2026-11-04
+tags:
+  - attack.stealth
+  - attack.execution
+  - attack.t1574.006
+logsource:
+  product: linux
+  service: auditd
+detection:
+  selection_type:
+    type: EXECVE
+  selection_redirect:
+    - a1|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a2|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a3|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a4|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a5|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a6|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a7|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+    - a8|contains:
+        - '3E202F6574632F6C642E736F2E7072656C6F6164'
+        - '3E2F6574632F6C642E736F2E7072656C6F6164'
+        - '>/etc/ld.so.preload'
+  condition: all of selection_*
+fields:
+  - msg
+  - a0
+  - a1
+  - a2
+  - a3
+  - a4
+  - a5
+  - a6
+  - a7
+  - a8
+falsepositives:
+  - Administrators and configuration management adding a memory allocator or hardening library to the file
+level: high
