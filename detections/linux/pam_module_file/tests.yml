@@ -1,0 +1,61 @@
+rule_id: ea4455ea-02b9-4dc0-bdba-c3de2c2e420b
+cases:
+  - name: tp_module_replaced_auid_unset
+    description: CAM-LDS scenario 1, video server, variant sudo + pam. The attacker downloads pam_unix.so with wget and moves it into the PAM module folder. AUID is unset, so the log has no PATH record of the rename.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_pam.zip?download=1
+        member: scenario_1_sudo_pam/videoserver/logs/log/audit/audit.log
+        sha256: 99da9ba9797d5d104740651030fd23796abc77198897b294e7ed0840cf61097b
+        size: 19233691
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 2
+      max_results: 2
+      match: {a0: mv, a2: '*/security/pam_unix.so'}
+  - name: tp_module_replaced_auid_root
+    description: CAM-LDS scenario 1, video server, variant cron + pam. The same wget and mv with AUID root.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_cron_pam.zip?download=1
+        member: scenario_1_cron_pam/videoserver/logs/log/audit/audit.log
+        sha256: 0f918279b542fae891d5e006ba05df675417b67af4d0667f6bbfd37e6a355ed3
+        size: 18313542
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 2
+      max_results: 2
+      match: {a0: mv, a2: '*/security/pam_unix.so'}
+  - name: fp_video_server_without_pam_step
+    description: CAM-LDS scenario 1, video server, variant sudo + localaccount. The same attack path without the PAM step.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_localaccount.zip?download=1
+        member: scenario_1_sudo_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: 40eefe42f94b7cfbd69a1b65c9d7eb31809b8b810a6d8f9a25887cb30002b8f5
+        size: 20343000
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0
+  - name: fp_repository_server
+    description: CAM-LDS scenario 3, repository server. The Wazuh agent runs stat on /etc/security/opasswds.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_3_ssh_apt.zip?download=1
+        member: scenario_3_ssh_apt/reposerver/logs/log/audit/audit.log
+        sha256: 072f32aae0b256cf8cf1805557eedabd62cf6289a17787347daf0b040ee5a158
+        size: 17731399
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0
+  - name: fp_docker_host
+    description: CAM-LDS scenario 7, Docker host. The Wazuh agent runs cat on /etc/security/pwquality.conf and stat on /etc/security/opasswd.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_7.zip?download=1
+        member: scenario_7/docker/logs/log/audit/audit.log
+        sha256: 6ca8722baa03dedf112c4eb2ad007d1c8556217d6dd81b3b7f2522306bdf70e7
+        size: 6559894
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0

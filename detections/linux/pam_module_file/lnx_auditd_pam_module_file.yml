@@ -1,0 +1,65 @@
+title: PAM Module File In Command Line Arguments
+id: ea4455ea-02b9-4dc0-bdba-c3de2c2e420b
+status: experimental
+description: |
+  Detects a command with a file named pam_*.so or a .so file in a security folder in its arguments,
+  as when an attacker replaces pam_unix.so with a backdoored copy. A command that only reads the
+  file or searches for its name also matches.
+references:
+  - https://attack.mitre.org/techniques/T1556/003/
+author: Dubwaay
+date: 2026-11-03
+tags:
+  - attack.credential-access
+  - attack.persistence
+  - attack.defense-impairment
+  - attack.t1556.003
+logsource:
+  product: linux
+  service: auditd
+detection:
+  selection_type:
+    type: EXECVE
+  selection_path:
+    - a1:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a2:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a3:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a4:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a5:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a6:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a7:
+        - '*/security/*.so'
+        - '*pam_*.so'
+    - a8:
+        - '*/security/*.so'
+        - '*pam_*.so'
+  condition: all of selection_*
+fields:
+  - msg
+  - a0
+  - a1
+  - a2
+  - a3
+  - a4
+  - a5
+  - a6
+  - a7
+  - a8
+falsepositives:
+  - Administrators checking a module with ls, ldd or sha256sum or searching for its name with grep, find or dpkg -S
+  - Vulnerability scanners and integrity check scripts that name module files in their commands
+  - Source builds and vendor installers of third party PAM modules
+  - Commands that name another library with pam_ inside its name, such as libpam_misc.so
+level: high
