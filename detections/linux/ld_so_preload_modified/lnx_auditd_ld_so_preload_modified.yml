@@ -1,0 +1,29 @@
+title: Change Of The ld.so.preload File
+id: 94572327-1d3d-42f0-a819-bb7e7f983f82
+status: experimental
+description: |
+  Detects a PATH record for a file named ld.so.preload, written when a file watch sees a change.
+  Each library named in /etc/ld.so.preload loads into every program started on the host.
+references:
+  - https://attack.mitre.org/techniques/T1574/006/
+author: Dubwaay
+date: 2026-11-04
+tags:
+  - attack.stealth
+  - attack.execution
+  - attack.t1574.006
+logsource:
+  product: linux
+  service: auditd
+detection:
+  selection:
+    type: PATH
+    name|endswith: 'ld.so.preload'
+  condition: selection
+fields:
+  - msg
+  - name
+  - nametype
+falsepositives:
+  - Administrators and configuration management adding a memory allocator or hardening library to the file
+level: high

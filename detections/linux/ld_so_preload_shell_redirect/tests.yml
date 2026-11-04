@@ -1,0 +1,26 @@
+rule_id: 45c00a22-639a-457f-bb3a-05cb12726f57
+cases:
+  - name: tp_library_added_by_bash
+    description: CAM-LDS scenario 2, video server, variant rootkit. bash -c appends /usr/lib/selinux.so.3 to /etc/ld.so.preload.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_2_rootkit.zip?download=1
+        member: scenario_2_rootkit/videoserver/logs/log/audit/audit.log
+        sha256: 2a0a5a5c7c8c33572633add4b192d3a5ab11408c43e5d6efce34011c5da71155
+        size: 6256932
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      min_results: 1
+      max_results: 1
+      match: {a0: bash, a1: '-c'}
+  - name: fp_cat_reads_the_file
+    description: CAM-LDS scenario 1, video server, variant sudo + localaccount. cat reads /etc/ld.so.preload twice.
+    datasets:
+      - url: https://zenodo.org/records/18861762/files/scenario_1_sudo_localaccount.zip?download=1
+        member: scenario_1_sudo_localaccount/videoserver/logs/log/audit/audit.log
+        sha256: 40eefe42f94b7cfbd69a1b65c9d7eb31809b8b810a6d8f9a25887cb30002b8f5
+        size: 20343000
+        sourcetype: linux_audit
+        source: /var/log/audit/audit.log
+    expect:
+      max_results: 0
