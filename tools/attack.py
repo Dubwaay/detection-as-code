@@ -11,10 +11,12 @@ from pathlib import Path
 from tools.datasets import download
 
 VERSION = "20.0"
-SHA256 = "81113ba98afa2928f3dcff62022539f7ce30c315c32e14422f11ff95ce534352"
+# MITRE moved the v20.0 tag after the release, so the file is pinned by commit.
+COMMIT = "5bbae6aa5bf4197aa7abd44b4864d8043d4fed98"
+SHA256 = "2339a3c36353d5ee2c07e98af3fafbf00761e0e3979ede06402657445b7b4278"
 URL = (
     "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/"
-    f"v{VERSION}/enterprise-attack/enterprise-attack-{VERSION}.json"
+    f"{COMMIT}/enterprise-attack/enterprise-attack-{VERSION}.json"
 )
 INDEX = "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/index.json"
 CACHE = Path(__file__).resolve().parent.parent / ".cache" / "attack"
@@ -38,5 +40,5 @@ if __name__ == "__main__":
     newest = latest()
     print(f"pinned ATT&CK {VERSION}, latest {newest}")
     if newest != VERSION:
-        print("update VERSION and SHA256 in tools/attack.py")
+        print("update VERSION, COMMIT and SHA256 in tools/attack.py")
         sys.exit(1)

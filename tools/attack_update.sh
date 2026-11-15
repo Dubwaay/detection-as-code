@@ -26,5 +26,5 @@ if [[ ! $latest =~ ^[0-9]+\.[0-9]+$ ]]; then
   issue "ATT&CK release check fails" "MITRE's index.json lists an unexpected version: ${RUN_URL:-see the attack-update workflow}"
 elif [[ $latest != "$pinned" ]]; then
   issue "Update ATT&CK to $latest" \
-    "MITRE released ATT&CK $latest. Set VERSION and SHA256 in tools/attack.py to it and run the checks."
+    "MITRE released ATT&CK $latest. Set VERSION, COMMIT and SHA256 in tools/attack.py to it and run the checks."
 fi
