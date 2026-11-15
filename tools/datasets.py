@@ -1,13 +1,10 @@
-"""Download test datasets and parse them into events."""
+"""Download test datasets into a cache and check their sha256."""
 
 import hashlib
 import io
-import re
 import shutil
 import urllib.request
-import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Iterator
 from pathlib import Path
 
 from tools.cases import Dataset
@@ -104,63 +101,3 @@ def fetch(dataset: Dataset) -> Path:
     if dataset.member:
         return download_member(str(dataset.url), dataset.member, dataset.sha256, path)
     return download(str(dataset.url), dataset.sha256, path)
-
-
-def _local(tag: str) -> str:
-    return tag.rsplit("}", 1)[-1]  # drop the XML namespace
-
-
-def xml_events(path: Path) -> Iterator[dict[str, str]]:
-    """Windows events exported as XML (XmlWinEventLog). A value can span lines."""
-    text = path.read_text(encoding="utf-8")
-    for match in re.finditer(r"<Event\b.*?</Event>", text, re.DOTALL):
-        event = ET.fromstring(match.group())
-        fields = {}
-        for part in event:
-            if _local(part.tag) == "System":
-                for item in part:
-                    name = _local(item.tag)
-                    if item.text and item.text.strip():
-                        fields[name] = item.text
-                    for attr, value in item.attrib.items():
-                        fields[f"{name}_{attr}"] = value  # e.g. Provider_Name
-            elif _local(part.tag) == "EventData":
-                for item in part:
-                    if "Name" in item.attrib:
-                        fields[item.attrib["Name"]] = item.text
-        yield fields
-
-
-AUDIT_LINE = re.compile(r"type=(?P<type>\S+) msg=audit\([^)]*\)\s*:\s*(?P<body>.*)")
-# A value is quoted or ends at a space, a quote or the 0x1d byte. Python's \s covers 0x1d.
-AUDIT_FIELD = re.compile(r"(?<![\w-])([A-Za-z_][\w-]*)=(\"[^\"]*\"|[^\s'\"]*)")
-
-
-def linux_audit_records(path: Path) -> Iterator[dict[str, str]]:
-    """Records of a raw audit.log, one per line, with field names as in the log.
-
-    Values stay as written: a proctitle or an EXECVE argument with a space is hex. auditd 3
-    appends names of numeric values after a 0x1d byte (syscall=59 ... SYSCALL=execve). Those
-    are fields of their own. User-space records wrap their fields in msg='...'.
-    """
-    # str.splitlines() would also split at 0x1d
-    for line in path.read_text(encoding="utf-8", errors="replace").split("\n"):
-        match = AUDIT_LINE.match(line)
-        if not match:
-            continue
-        record = {"type": match["type"]}
-        for name, value in AUDIT_FIELD.findall(match["body"]):
-            if name != "msg":
-                record[name] = value.strip('"')
-        yield record
-
-
-READERS = {"XmlWinEventLog": xml_events, "linux_audit": linux_audit_records}
-
-
-def events(dataset: Dataset) -> Iterator[dict[str, str]]:
-    try:
-        reader = READERS[dataset.sourcetype]
-    except KeyError:
-        raise ValueError(f"no reader for sourcetype {dataset.sourcetype}") from None
-    return reader(fetch(dataset))

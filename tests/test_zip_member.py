@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from tools.logs import download_member
+from tools.datasets import download_member
 
 LOG = b"type=PROCTITLE msg=audit(1758539807.929:13085): proctitle=636174\n" * 100
 LOG_SHA256 = hashlib.sha256(LOG).hexdigest()

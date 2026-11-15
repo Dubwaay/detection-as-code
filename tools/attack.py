@@ -8,7 +8,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from tools.logs import download
+from tools.datasets import download
 
 VERSION = "20.0"
 SHA256 = "81113ba98afa2928f3dcff62022539f7ce30c315c32e14422f11ff95ce534352"
