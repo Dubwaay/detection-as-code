@@ -10,10 +10,10 @@ from pathlib import Path
 
 from tools.datasets import download
 
-VERSION = "20.0"
-# MITRE moved the v20.0 tag after the release, so the file is pinned by commit.
-COMMIT = "5bbae6aa5bf4197aa7abd44b4864d8043d4fed98"
-SHA256 = "2339a3c36353d5ee2c07e98af3fafbf00761e0e3979ede06402657445b7b4278"
+VERSION = "20.1"
+# Pinned by commit: MITRE moved the v20.0 tag after that release.
+COMMIT = "f59b03ecf828579d5f9e93683ce25b7e2e5fd9d7"
+SHA256 = "539a843a7b53ed9749740b2123dddae3726b1a4831841c32aca740b011b910b5"
 URL = (
     "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/"
     f"{COMMIT}/enterprise-attack/enterprise-attack-{VERSION}.json"
