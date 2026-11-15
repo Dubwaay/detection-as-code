@@ -50,8 +50,8 @@ detections/<platform>/<name>/
 Test logs and the ATT&CK release are downloaded into `.cache/` and checked against their
 sha256. They are not stored in the repo.
 
-When MITRE publishes a new ATT&CK release, the weekly check opens an issue. Set `VERSION` and
-`SHA256` in `tools/attack.py` to the new release and run the checks.
+When MITRE publishes a new ATT&CK release, the weekly check opens an issue. Set `VERSION`,
+`COMMIT` and `SHA256` in `tools/attack.py` to the new release and run the checks.
 
 ## Detection cards
 
