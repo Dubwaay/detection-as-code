@@ -47,7 +47,8 @@ def run(rule_path: Path, events: list[dict[str, str]]) -> list[dict[str, str]]:
         pipeline += ProcessingPipeline(
             items=[ProcessingItem(FieldMappingTransformation(moved), identifier="own_columns")]
         )
-    (query,) = sqliteBackend(pipeline).convert(rule)
+    # Correlation windows are counted on _time, the field the readers set.
+    (query,) = sqliteBackend(pipeline, timestamp_field="_time").convert(rule)
 
     order = list(dict.fromkeys(fields.values()))
     position = {column: i for i, column in enumerate(order)}
@@ -76,9 +77,11 @@ def run(rule_path: Path, events: list[dict[str, str]]) -> list[dict[str, str]]:
         except sqlite3.OperationalError as error:
             # A field the rule checks can be absent from every event, like a0 of EXECVE in a
             # log of PATH records. An empty column lets that part of the rule not match.
-            missing = re.fullmatch(r"no such column: (\w+)", str(error))
+            # Names of nested JSON fields have dots and braces: user.username, containers{}.name.
+            missing = re.fullmatch(r"no such column: (.+)", str(error))
             if not missing:
                 raise
-            db.execute(f'ALTER TABLE logs ADD COLUMN "{missing[1]}" TEXT COLLATE NOCASE')
+            column = missing[1].replace('"', '""')
+            db.execute(f'ALTER TABLE logs ADD COLUMN "{column}" TEXT COLLATE NOCASE')
     names = [d[0] for d in cursor.description]
     return [dict(zip(names, row, strict=True)) for row in cursor]

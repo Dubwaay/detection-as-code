@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tools import cards, logs
+from tools import cards, readers
 from tools.cases import CaseFile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -97,7 +97,7 @@ def test_card_example_event(folder: Path) -> None:
         yaml.safe_load((folder / "tests.yml").read_text(encoding="utf-8"))
     )
     datasets = {d.sha256: d for case in tests.cases for d in case.datasets}.values()
-    events = [event for dataset in datasets for event in logs.events(dataset)]
+    events = [event for dataset in datasets for event in readers.events(dataset)]
     for shown in examples:
         assert any(all(same(event.get(f), v) for f, v in shown.items()) for event in events), (
             f"no event in the test logs matches the example {shown}"

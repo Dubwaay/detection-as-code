@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tools import logs, replay
+from tools import readers, replay
 from tools.cases import Case, CaseFile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,7 +33,7 @@ def matches(value: str | None, pattern: str) -> bool:
 @pytest.mark.parametrize(("folder", "case"), cases())
 def test_rule_on_logs(folder: Path, case: Case) -> None:
     (rule_path,) = (p for p in folder.glob("*.yml") if p.name != "tests.yml")
-    events = [event for dataset in case.datasets for event in logs.events(dataset)]
+    events = [event for dataset in case.datasets for event in readers.events(dataset)]
     results = replay.run(rule_path, events)
 
     expect = case.expect

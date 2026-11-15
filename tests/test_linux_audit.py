@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from tools import replay
-from tools.logs import linux_audit_records
+from tools.readers import linux_audit_records
 
 SYSCALL = (
     "type=SYSCALL msg=audit(1758539807.929:13085): arch=c000003e syscall=59 success=yes exit=0"
@@ -35,9 +35,18 @@ def read(tmp_path: Path, *lines: str) -> list[dict[str, str]]:
 
 def test_number_and_name_are_two_fields(tmp_path: Path) -> None:
     (record,) = read(tmp_path, SYSCALL)
+    assert record["_time"] == "2025-09-22T11:16:47.929Z"
     assert (record["syscall"], record["SYSCALL"]) == ("59", "execve")
     assert (record["auid"], record["AUID"]) == ("1003", "webadmin")
     assert (record["exe"], record["key"]) == ("/usr/bin/sudo", "T1078_Valid_Accounts")
+
+
+def test_time_printed_by_ausearch(tmp_path: Path) -> None:
+    (record,) = read(
+        tmp_path,
+        "type=PATH msg=audit(11/24/2025 14:24:20.595:327520) : item=0 name=ld.so.preload",
+    )
+    assert (record["_time"], record["name"]) == ("2025-11-24T14:24:20.595Z", "ld.so.preload")
 
 
 def test_hex_stays_hex(tmp_path: Path) -> None:
